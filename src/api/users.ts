@@ -1,5 +1,6 @@
 import client from './client';
 import type { ListParams, PaginatedResponse } from './mentors';
+import { toPaginated } from './mentors';
 
 export interface User {
   id: number;
@@ -14,7 +15,7 @@ export interface User {
 
 export async function getUsers(params?: ListParams): Promise<PaginatedResponse<User>> {
   const res = await client.get('/admin/users', { params });
-  return res.data;
+  return toPaginated<User>(res, params);
 }
 
 export async function createUser(data: {

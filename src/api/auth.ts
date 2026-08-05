@@ -26,17 +26,53 @@ export interface UserInfo {
   created_at: string;
 }
 
+// Raw response shape from backend (camelCase, wrapped in data)
+interface RawLoginData {
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    id: number;
+    username: string;
+    displayName: string;
+    role: 'admin' | 'operator' | 'normal';
+  };
+}
+
+function transformLogin(raw: RawLoginData): LoginResponse {
+  return {
+    access_token: raw.accessToken,
+    refresh_token: raw.refreshToken,
+    user: {
+      id: raw.user.id,
+      username: raw.user.username,
+      display_name: raw.user.displayName,
+      role: raw.user.role,
+    },
+  };
+}
+
 export async function login(data: LoginRequest): Promise<LoginResponse> {
   const res = await client.post('/auth/login', data);
-  return res.data;
+  // interceptor already unwrapped { data: {...} }, now convert camelCase → snake_case
+  return transformLogin(res.data);
 }
 
 export async function refreshToken(token: string): Promise<{ access_token: string }> {
   const res = await client.post('/auth/refresh', { refresh_token: token });
-  return res.data;
+  const raw = res.data;
+  return { access_token: raw.accessToken ?? raw.access_token };
 }
 
 export async function getMe(): Promise<UserInfo> {
   const res = await client.get('/auth/me');
-  return res.data;
+  const raw = res.data;
+  return {
+    id: raw.id,
+    username: raw.username,
+    display_name: raw.displayName ?? raw.display_name,
+    role: raw.role,
+    status: raw.status,
+    last_login_at: raw.lastLoginAt ?? raw.last_login_at,
+    created_at: raw.createdAt ?? raw.created_at,
+  };
 }

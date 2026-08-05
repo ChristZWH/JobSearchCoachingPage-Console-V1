@@ -1,5 +1,6 @@
 import client from './client';
 import type { ListParams, PaginatedResponse } from './mentors';
+import { toPaginated } from './mentors';
 
 export interface IndustryInsight {
   id: number;
@@ -12,7 +13,7 @@ export interface IndustryInsight {
 
 export async function getInsights(params?: ListParams): Promise<PaginatedResponse<IndustryInsight>> {
   const res = await client.get('/insights', { params });
-  return res.data;
+  return toPaginated<IndustryInsight>(res, params);
 }
 
 export async function getInsight(id: number): Promise<IndustryInsight> {

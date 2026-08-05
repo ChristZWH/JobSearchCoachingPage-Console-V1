@@ -42,10 +42,20 @@ export interface PaginatedResponse<T> {
   page_size: number;
 }
 
+export function toPaginated<T>(res: { data: T[] | unknown }, params?: ListParams): PaginatedResponse<T> {
+  const arr = Array.isArray(res.data) ? res.data : [];
+  return {
+    data: arr,
+    total: arr.length,
+    page: params?.page ?? 1,
+    page_size: params?.page_size ?? arr.length,
+  };
+}
+
 // Public read
 export async function getMentors(params?: ListParams): Promise<PaginatedResponse<Mentor>> {
   const res = await client.get('/mentors', { params });
-  return res.data;
+  return toPaginated<Mentor>(res, params);
 }
 
 export async function getMentor(id: number): Promise<Mentor> {

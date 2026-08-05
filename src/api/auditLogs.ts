@@ -1,5 +1,6 @@
 import client from './client';
 import type { ListParams, PaginatedResponse } from './mentors';
+import { toPaginated } from './mentors';
 
 export interface AuditLog {
   id: number;
@@ -23,5 +24,5 @@ export interface AuditLogFilters extends ListParams {
 
 export async function getAuditLogs(filters?: AuditLogFilters): Promise<PaginatedResponse<AuditLog>> {
   const res = await client.get('/admin/audit-logs', { params: filters });
-  return res.data;
+  return toPaginated<AuditLog>(res, filters);
 }

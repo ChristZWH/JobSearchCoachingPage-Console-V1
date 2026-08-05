@@ -1,5 +1,6 @@
 import client from './client';
 import type { ListParams, PaginatedResponse } from './mentors';
+import { toPaginated } from './mentors';
 
 export interface Tag {
   id: number;
@@ -11,7 +12,7 @@ export interface Tag {
 
 export async function getTags(params?: ListParams): Promise<PaginatedResponse<Tag>> {
   const res = await client.get('/tags', { params });
-  return res.data;
+  return toPaginated<Tag>(res, params);
 }
 
 export async function createTag(data: Partial<Tag>): Promise<Tag> {

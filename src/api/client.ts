@@ -24,9 +24,16 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor: handle 401
+// Response interceptor: unwrap { data: ... } wrapper from backend
 client.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Backend wraps all success responses in { data: ... }
+    // Unwrap it so API modules receive the inner data directly
+    if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+      response.data = response.data.data;
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 
@@ -52,7 +59,7 @@ client.interceptors.response.use(
           refreshPromise = client
             .post('/auth/refresh', { refresh_token: refreshToken })
             .then((res) => {
-              const newToken = res.data.access_token;
+              const newToken = res.data.accessToken ?? res.data.access_token;
               if (newToken) {
                 setAccessToken(newToken);
               }

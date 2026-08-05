@@ -1,5 +1,6 @@
 import client from './client';
 import type { ListParams, PaginatedResponse } from './mentors';
+import { toPaginated } from './mentors';
 
 export interface StudentCase {
   id: number;
@@ -15,7 +16,7 @@ export interface StudentCase {
 
 export async function getCases(params?: ListParams): Promise<PaginatedResponse<StudentCase>> {
   const res = await client.get('/cases', { params });
-  return res.data;
+  return toPaginated<StudentCase>(res, params);
 }
 
 export async function getCase(id: number): Promise<StudentCase> {

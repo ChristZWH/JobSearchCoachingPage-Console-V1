@@ -1,5 +1,6 @@
 import client from './client';
 import type { ListParams, PaginatedResponse } from './mentors';
+import { toPaginated } from './mentors';
 
 export interface ContactSubmission {
   id: number;
@@ -13,7 +14,7 @@ export interface ContactSubmission {
 
 export async function getContacts(params?: ListParams): Promise<PaginatedResponse<ContactSubmission>> {
   const res = await client.get('/contacts', { params });
-  return res.data;
+  return toPaginated<ContactSubmission>(res, params);
 }
 
 export async function markContactProcessed(id: number): Promise<void> {
