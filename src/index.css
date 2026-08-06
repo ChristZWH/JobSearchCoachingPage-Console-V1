@@ -1,4 +1,6 @@
-* {
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -8,8 +10,52 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color: #2d3748;
+  background: #f7f8fa;
 }
 
 #root {
   min-height: 100vh;
+}
+
+/* Ant Design overrides — dark sidebar menu */
+.ant-layout-sider .ant-menu-dark {
+  background: transparent;
+}
+
+.ant-layout-sider .ant-menu-dark .ant-menu-item-selected {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-radius: 6px;
+  margin: 0 8px !important;
+  width: auto !important;
+}
+
+.ant-layout-sider .ant-menu-dark .ant-menu-item {
+  margin: 0 8px !important;
+  width: auto !important;
+  border-radius: 6px;
+  padding-left: 16px !important;
+}
+
+.ant-layout-sider.ant-layout-sider-collapsed .ant-menu-dark .ant-menu-item {
+  padding-left: 24px !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
 }

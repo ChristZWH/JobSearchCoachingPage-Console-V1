@@ -28,8 +28,17 @@ export default function App() {
     <ConfigProvider
       theme={{
         token: {
-          colorPrimary: '#667eea',
-          borderRadius: 6,
+          colorPrimary: '#1a365d',
+          colorInfo: '#1a365d',
+          colorSuccess: '#2f855a',
+          colorWarning: '#c05621',
+          colorError: '#c53030',
+          borderRadius: 8,
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif",
+          fontSize: 14,
+          colorBgContainer: '#ffffff',
+          colorBgLayout: '#f7f8fa',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
         },
       }}
     >

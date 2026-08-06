@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Row, Col, Card, Statistic, Table, Spin, Typography } from 'antd';
+import { Row, Col, Card, Table, Spin, Typography } from 'antd';
 import {
   TeamOutlined,
   FileTextOutlined,
   BulbOutlined,
   MailOutlined,
+  ClockCircleOutlined,
 } from '@ant-design/icons';
 import { getMentors } from '../api/mentors';
 import { getCases } from '../api/cases';
@@ -13,10 +14,49 @@ import { getAuditLogs, type AuditLog } from '../api/auditLogs';
 
 const { Title } = Typography;
 
+interface StatCardProps {
+  label: string;
+  value: number;
+  icon: React.ReactNode;
+  color: string;
+  bg: string;
+}
+
+function StatCard({ label, value, icon, color, bg }: StatCardProps) {
+  return (
+    <Card
+      style={{ borderRadius: 10, border: '1px solid #edf2f7', boxShadow: 'none' }}
+      bodyStyle={{ padding: '20px 24px' }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontSize: 13, color: '#718096', marginBottom: 8, fontWeight: 500 }}>{label}</div>
+          <div style={{ fontSize: 32, fontWeight: 700, color: '#1a202c', lineHeight: 1 }}>
+            {value.toLocaleString()}
+          </div>
+        </div>
+        <div style={{
+          width: 48, height: 48, borderRadius: 14,
+          background: bg,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0,
+        }}>
+          <span style={{ fontSize: 22, color }}>{icon}</span>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+const statCards = [
+  { label: 'Mentors', key: 'mentors' as const, icon: <TeamOutlined />, color: '#2b6cb0', bg: '#ebf4ff' },
+  { label: 'Student Cases', key: 'cases' as const, icon: <FileTextOutlined />, color: '#2f855a', bg: '#f0fff4' },
+  { label: 'Insights', key: 'insights' as const, icon: <BulbOutlined />, color: '#c05621', bg: '#fffaf0' },
+  { label: 'Contacts', key: 'contacts' as const, icon: <MailOutlined />, color: '#6b46c1', bg: '#faf5ff' },
+];
+
 export default function Dashboard() {
-  const [mentorCount, setMentorCount] = useState(0);
-  const [caseCount, setCaseCount] = useState(0);
-  const [insightCount, setInsightCount] = useState(0);
+  const [counts, setCounts] = useState<Record<string, number>>({ mentors: 0, cases: 0, insights: 0, contacts: 0 });
   const [recentLogs, setRecentLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,12 +69,15 @@ export default function Dashboard() {
           getInsights({ page_size: 1 }),
           getAuditLogs({ page_size: 10, page: 1 }),
         ]);
-        setMentorCount(mentors.total);
-        setCaseCount(cases.total);
-        setInsightCount(insights.total);
+        setCounts({
+          mentors: mentors.total,
+          cases: cases.total,
+          insights: insights.total,
+          contacts: 0,
+        });
         setRecentLogs(logs.data || []);
       } catch {
-        // API not ready yet — show zeros
+        // API not ready yet
       } finally {
         setLoading(false);
       }
@@ -42,48 +85,69 @@ export default function Dashboard() {
     load();
   }, []);
 
+  const actionColors: Record<string, string> = {
+    CREATE: '#2f855a', UPDATE: '#2b6cb0', DELETE: '#c53030',
+    LOGIN: '#6b46c1', LOGOUT: '#718096',
+  };
+
   const logColumns = [
-    { title: 'User', dataIndex: 'username', key: 'username', width: 120 },
-    { title: 'Action', dataIndex: 'action', key: 'action', width: 100 },
-    { title: 'Resource', dataIndex: 'resource', key: 'resource', width: 140 },
+    {
+      title: 'User', dataIndex: 'username', key: 'username', width: 130,
+      render: (v: string) => <span style={{ fontWeight: 500, color: '#2d3748' }}>{v}</span>,
+    },
+    {
+      title: 'Action', dataIndex: 'action', key: 'action', width: 100,
+      render: (v: string) => (
+        <span style={{
+          display: 'inline-block', padding: '2px 10px', borderRadius: 4,
+          background: (actionColors[v] || '#edf2f7') + '1a',
+          color: actionColors[v] || '#718096', fontSize: 12, fontWeight: 500,
+        }}>
+          {v}
+        </span>
+      ),
+    },
+    { title: 'Resource', dataIndex: 'resource', key: 'resource', width: 150,
+      render: (v: string) => <span style={{ color: '#4a5568' }}>{v}</span>,
+    },
     { title: 'Time', dataIndex: 'created_at', key: 'created_at', width: 180,
-      render: (v: string) => v ? new Date(v).toLocaleString() : '-' },
+      render: (v: string) => <span style={{ color: '#a0aec0', fontSize: 12 }}>{v ? new Date(v).toLocaleString() : '-'}</span>,
+    },
   ];
 
   return (
     <Spin spinning={loading}>
-      <Title level={4} style={{ marginBottom: 24 }}>Dashboard</Title>
+      <div style={{ marginBottom: 28 }}>
+        <Title level={4} style={{ margin: 0, fontWeight: 600, color: '#1a202c' }}>Dashboard</Title>
+        <div style={{ fontSize: 13, color: '#a0aec0', marginTop: 4 }}>Overview of your coaching platform</div>
+      </div>
 
       <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic title="Mentors" value={mentorCount} prefix={<TeamOutlined />} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic title="Student Cases" value={caseCount} prefix={<FileTextOutlined />} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic title="Insights" value={insightCount} prefix={<BulbOutlined />} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic title="Contacts" value={0} prefix={<MailOutlined />} />
-          </Card>
-        </Col>
+        {statCards.map((s) => (
+          <Col xs={24} sm={12} lg={6} key={s.key}>
+            <StatCard label={s.label} value={counts[s.key]} icon={s.icon} color={s.color} bg={s.bg} />
+          </Col>
+        ))}
       </Row>
 
-      <Card title="Recent Activity" style={{ marginTop: 24 }}>
+      <Card
+        title={
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <ClockCircleOutlined style={{ color: '#718096' }} />
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#2d3748' }}>Recent Activity</span>
+          </span>
+        }
+        style={{ marginTop: 24, borderRadius: 10, border: '1px solid #edf2f7' }}
+        styles={{ body: { padding: '12px 24px' } }}
+      >
         <Table
           dataSource={recentLogs}
           columns={logColumns}
           rowKey="id"
           pagination={false}
-          size="small"
+          size="middle"
+          showHeader={false}
+          style={{ marginTop: -4 }}
         />
       </Card>
     </Spin>
