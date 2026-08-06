@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Form, Input, Button, Card, Space, message, Typography, Spin,
-  Table, Modal, Popconfirm, Divider, Upload, Image,
+  Table, Modal, Popconfirm, Divider, Upload, Image, Select, InputNumber, Switch,
 } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, ArrowLeftOutlined, UploadOutlined } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
@@ -12,7 +12,8 @@ import {
   type MentorEducation,
 } from '../../api/mentors';
 import { getTags, type Tag as TagType } from '../../api/tags';
-import { StringArrayEditor } from '../../components/JsonEditor';
+import { StringArrayEditor, ReviewListEditor, ClipListEditor } from '../../components/JsonEditor';
+import TagSelect from '../../components/TagSelect';
 import { getAccessToken } from '../../utils/storage';
 
 const { Title } = Typography;
@@ -117,7 +118,7 @@ export default function MentorForm() {
       } else {
         const created = await createMentor(values);
         message.success('导师创建成功');
-        navigate(`/mentors/${created.id}/edit`, { replace: true });
+        navigate(`/mentors?new=${created.id}`, { replace: true });
         return;
       }
       navigate('/mentors');
@@ -162,11 +163,11 @@ export default function MentorForm() {
   };
 
   const eduColumns = [
-    { title: '学校', dataIndex: 'school_name', key: 'school_name' },
+    { title: '学校', dataIndex: 'schoolName', key: 'schoolName' },
+    { title: '国家', dataIndex: 'country', key: 'country', width: 80 },
     { title: '学位', dataIndex: 'degree', key: 'degree' },
     { title: '专业', dataIndex: 'major', key: 'major' },
-    { title: '开始', dataIndex: 'start_year', key: 'start_year', width: 80 },
-    { title: '结束', dataIndex: 'end_year', key: 'end_year', width: 80 },
+    { title: '毕业年份', dataIndex: 'graduationYear', key: 'graduationYear', width: 90 },
     {
       title: '操作', key: 'actions', width: 120,
       render: (_: unknown, record: MentorEducation) => (
@@ -189,53 +190,101 @@ export default function MentorForm() {
         extra={<Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/mentors')}>返回</Button>}
       >
         <Form form={form} layout="vertical" onFinish={onFinish} style={{ maxWidth: 900 }}>
+          {/* Row 1: 基本信息 */}
           <Space style={{ width: '100%' }} size="middle">
             <Form.Item name="name" label="姓名" rules={[{ required: true }]}>
-              <Input style={{ width: 240 }} />
+              <Input style={{ width: 180 }} />
             </Form.Item>
             <Form.Item name="title" label="职位" rules={[{ required: true }]}>
-              <Input style={{ width: 240 }} />
+              <TagSelect category="department" placeholder="选择或输入职位..." style={{ width: 200 }} />
             </Form.Item>
-            <Form.Item name="company" label="公司">
-              <Input style={{ width: 240 }} />
+            <Form.Item name="company" label="公司" rules={[{ required: true }]}>
+              <TagSelect category="company" placeholder="选择或输入公司..." style={{ width: 180 }} />
             </Form.Item>
-          </Space>
-
-          <Space style={{ width: '100%' }} size="large" wrap>
-            <Form.Item name="avatar" label="头像">
-              <ImageUploadField />
-            </Form.Item>
-            <Form.Item name="image" label="展示图">
-              <ImageUploadField />
-            </Form.Item>
-            <Form.Item name="background_image" label="背景图">
-              <ImageUploadField />
+            <Form.Item name="department" label="部门">
+              <TagSelect category="department" placeholder="选择或输入部门..." style={{ width: 160 }} />
             </Form.Item>
           </Space>
 
-          <Form.Item name="intro" label="个人介绍">
-            <TextArea rows={3} placeholder="简要介绍..." />
+          {/* Row 2: 分类信息 */}
+          <Space style={{ width: '100%' }} size="middle">
+            <Form.Item name="category" label="领域" rules={[{ required: true }]}>
+              <Select style={{ width: 140 }} options={[
+                { label: '金融', value: 'finance' }, { label: '咨询', value: 'consulting' },
+                { label: '科技', value: 'tech' }, { label: '医疗', value: 'healthcare' },
+                { label: '法律', value: 'legal' }, { label: '其他', value: 'other' },
+              ]} />
+            </Form.Item>
+            <Form.Item name="region" label="地区">
+              <Select style={{ width: 140 }} options={[
+                { label: '北美', value: 'North America' }, { label: '欧洲', value: 'Europe' },
+                { label: '亚洲', value: 'Asia' }, { label: '大洋洲', value: 'Oceania' },
+                { label: '其他', value: 'Other' },
+              ]} />
+            </Form.Item>
+            <Form.Item name="industry" label="行业">
+              <TagSelect category="industry" placeholder="选择或输入行业..." style={{ width: 180 }} />
+            </Form.Item>
+            <Form.Item name="targetRole" label="目标职位">
+              <Input style={{ width: 180 }} />
+            </Form.Item>
+            <Form.Item name="experience" label="经验(年)">
+              <InputNumber style={{ width: 80 }} min={0} max={50} />
+            </Form.Item>
+          </Space>
+
+          {/* Avatar */}
+          <Form.Item name="avatar" label="头像">
+            <ImageUploadField />
+          </Form.Item>
+
+          {/* Bio */}
+          <Form.Item name="shortBio" label="简介" rules={[{ max: 500 }]}>
+            <TextArea rows={2} placeholder="一句话简介，用于卡片展示" />
+          </Form.Item>
+          <Form.Item name="bio" label="详细介绍 (bio)">
+            <TextArea rows={4} placeholder="完整个人介绍" />
           </Form.Item>
 
           <Divider orientation="left">详细信息</Divider>
 
+          {/* JSON 数组字段 */}
+          <Form.Item name="professionalBackground" label="职业背景">
+            <StringArrayEditor placeholder="例如：10+ years in Investment Banking" />
+          </Form.Item>
+
+          <Form.Item name="industrySpecialization" label="行业专长">
+            <StringArrayEditor placeholder="例如：Investment Banking" />
+          </Form.Item>
+
           <Form.Item name="languages" label="语言">
-            <StringArrayEditor placeholder="例如：英语" />
+            <StringArrayEditor placeholder="例如：English" />
           </Form.Item>
 
-          <Form.Item name="key_skills" label="核心技能">
-            <StringArrayEditor placeholder="例如：产品管理" />
+          <Form.Item name="keySkills" label="核心技能">
+            <StringArrayEditor placeholder="例如：M&A Advisory" />
           </Form.Item>
 
-          <Form.Item name="reviews" label="评价 (JSON)">
-            <StringArrayEditor placeholder="评价内容" />
+          <Form.Item name="reviews" label="学员评价">
+            <ReviewListEditor />
           </Form.Item>
 
-          <Form.Item name="teaching_clips" label="教学片段 (JSON)">
-            <StringArrayEditor placeholder="片段链接或描述" />
+          <Form.Item name="teachingClips" label="教学片段">
+            <ClipListEditor />
           </Form.Item>
 
-          <Form.Item>
+          <Divider orientation="left">显示设置</Divider>
+
+          <Space size="large">
+            <Form.Item name="featured" label="首页推荐" valuePropName="checked">
+              <Switch />
+            </Form.Item>
+            <Form.Item name="order" label="排序权重">
+              <InputNumber min={0} max={9999} />
+            </Form.Item>
+          </Space>
+
+          <Form.Item style={{ marginTop: 24 }}>
             <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={saving}>
               {isEdit ? '更新' : '创建'}
             </Button>
@@ -259,21 +308,21 @@ export default function MentorForm() {
         destroyOnClose
       >
         <Form form={eduForm} layout="vertical">
-          <Form.Item name="school_name" label="学校" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="degree" label="学位" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="major" label="专业">
-            <Input />
+          <Form.Item name="schoolName" label="学校" rules={[{ required: true }]}>
+            <TagSelect category="school" placeholder="选择或输入学校..." style={{ width: 260 }} />
           </Form.Item>
           <Space size="middle">
-            <Form.Item name="start_year" label="起始年份">
-              <Input type="number" style={{ width: 120 }} />
+            <Form.Item name="degree" label="学位" rules={[{ required: true }]}>
+              <Input style={{ width: 180 }} />
             </Form.Item>
-            <Form.Item name="end_year" label="结束年份">
-              <Input type="number" style={{ width: 120 }} />
+            <Form.Item name="major" label="专业">
+              <Input style={{ width: 180 }} />
+            </Form.Item>
+            <Form.Item name="country" label="国家">
+              <Input style={{ width: 120 }} />
+            </Form.Item>
+            <Form.Item name="graduationYear" label="毕业年份">
+              <InputNumber style={{ width: 100 }} min={1950} max={2030} />
             </Form.Item>
           </Space>
         </Form>

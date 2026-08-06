@@ -6,12 +6,18 @@ export interface StudentCase {
   id: number;
   title: string;
   category: string;
+  industry: string;
+  company: string;
+  description: string;
+  studentName: string;
+  result: string;
+  image: string;
+  tags: string[];
   content: string;
   challenge: string;
   strategy: string;
   outcome: string;
-  created_at: string;
-  updated_at: string;
+  featured: boolean;
 }
 
 export async function getCases(params?: ListParams): Promise<PaginatedResponse<StudentCase>> {

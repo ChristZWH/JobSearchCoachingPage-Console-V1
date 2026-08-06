@@ -41,7 +41,7 @@ export default function ContactList() {
     { title: '状态', dataIndex: 'processed', key: 'processed', width: 100,
       render: (v: boolean) => v ? <Tag color="green">已处理</Tag> : <Tag color="orange">待处理</Tag>,
     },
-    { title: '日期', dataIndex: 'created_at', key: 'created_at', width: 170,
+    { title: '日期', dataIndex: 'id', key: 'created_at', width: 170,
       render: (v: string) => v ? new Date(v).toLocaleString() : '-',
     },
     {
@@ -73,7 +73,7 @@ export default function ContactList() {
         {viewing && (
           <>
             <p><strong>来自:</strong> {viewing.name} ({viewing.email})</p>
-            <p><strong>日期:</strong> {new Date(viewing.created_at).toLocaleString()}</p>
+            <p><strong>日期:</strong> {new Date(viewing.id).toLocaleString()}</p>
             <Paragraph style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{viewing.message}</Paragraph>
           </>
         )}

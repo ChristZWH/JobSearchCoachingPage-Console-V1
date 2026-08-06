@@ -4,14 +4,14 @@ import { toPaginated } from './mentors';
 
 export interface AuditLog {
   id: number;
-  user_id: number;
+  userId: number | null;
   username: string;
   action: string;
   resource: string;
-  resource_id: string;
+  resourceId: string;
   detail: Record<string, unknown> | null;
-  ip_address: string;
-  created_at: string;
+  ipAddress: string;
+  createdAt: string;
 }
 
 export interface AuditLogFilters extends ListParams {

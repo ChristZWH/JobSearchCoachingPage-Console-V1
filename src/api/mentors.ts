@@ -5,28 +5,33 @@ export interface Mentor {
   name: string;
   title: string;
   company: string;
+  department: string;
   avatar: string;
-  image: string;
-  background_image: string;
-  intro: string;
+  category: string;
+  region: string;
+  industry: string;
+  targetRole: string;
+  experience: number;
   languages: string[];
-  key_skills: string[];
+  keySkills: string[];
+  professionalBackground: string[];
+  industrySpecialization: string[];
+  bio: string;
+  shortBio: string;
+  teachingClips: Record<string, unknown>[];
   reviews: Record<string, unknown>[];
-  teaching_clips: Record<string, unknown>[];
-  created_at: string;
-  updated_at: string;
+  featured: boolean;
+  order: number;
 }
 
 export interface MentorEducation {
   id: number;
-  mentor_id: number;
-  school_name: string;
+  mentorId: number;
+  schoolName: string;
+  country: string;
   degree: string;
   major: string;
-  start_year: number;
-  end_year: number;
-  created_at: string;
-  updated_at: string;
+  graduationYear: number;
 }
 
 export interface ListParams {

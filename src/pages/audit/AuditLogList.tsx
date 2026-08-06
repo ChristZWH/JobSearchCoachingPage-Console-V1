@@ -40,9 +40,9 @@ export default function AuditLogList() {
       render: (v: string) => <Tag color={actionColors[v] || 'default'}>{v}</Tag>,
     },
     { title: '资源', dataIndex: 'resource', key: 'resource', width: 140 },
-    { title: '资源ID', dataIndex: 'resource_id', key: 'resource_id', width: 100 },
-    { title: 'IP', dataIndex: 'ip_address', key: 'ip_address', width: 130 },
-    { title: '时间', dataIndex: 'created_at', key: 'created_at', width: 180,
+    { title: '资源ID', dataIndex: 'resourceId', key: 'resource_id', width: 100 },
+    { title: 'IP', dataIndex: 'ipAddress', key: 'ip_address', width: 130 },
+    { title: '时间', dataIndex: 'createdAt', key: 'created_at', width: 180,
       render: (v: string) => v ? dayjs(v).format('YYYY-MM-DD HH:mm:ss') : '-',
     },
     {

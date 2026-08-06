@@ -110,7 +110,7 @@ export default function Dashboard() {
     { title: '资源', dataIndex: 'resource', key: 'resource', width: 150,
       render: (v: string) => <span style={{ color: '#4a5568' }}>{v}</span>,
     },
-    { title: '时间', dataIndex: 'created_at', key: 'created_at', width: 180,
+    { title: '时间', dataIndex: 'createdAt', key: 'created_at', width: 180,
       render: (v: string) => <span style={{ color: '#a0aec0', fontSize: 12 }}>{v ? new Date(v).toLocaleString() : '-'}</span>,
     },
   ];

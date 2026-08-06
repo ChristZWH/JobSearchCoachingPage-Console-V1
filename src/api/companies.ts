@@ -3,9 +3,7 @@ import client from './client';
 export interface CompanyLogo {
   id: number;
   name: string;
-  logo_url: string;
-  created_at: string;
-  updated_at: string;
+  logo: string;
 }
 
 export async function getCompanyLogos(): Promise<CompanyLogo[]> {

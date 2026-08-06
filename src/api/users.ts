@@ -5,12 +5,12 @@ import { toPaginated } from './mentors';
 export interface User {
   id: number;
   username: string;
-  display_name: string;
+  displayName: string;
   role: 'admin' | 'operator' | 'normal';
   status: number;
-  last_login_at: string;
-  created_at: string;
-  updated_at: string;
+  lastLoginAt: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export async function getUsers(params?: ListParams): Promise<PaginatedResponse<User>> {

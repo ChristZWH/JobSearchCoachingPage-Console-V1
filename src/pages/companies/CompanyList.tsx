@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Table, Button, Modal, Form, Input, Space, message, Popconfirm, Typography, Upload, Image, Tooltip } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons';
-import type { UploadProps } from 'antd';
+import type { UploadProps, TableColumnsType } from 'antd';
 import { getCompanyLogos, createCompanyLogo, updateCompanyLogo, deleteCompanyLogo, type CompanyLogo } from '../../api/companies';
 import { useAuth } from '../../hooks/useAuth';
 import { getAccessToken } from '../../utils/storage';
@@ -101,22 +101,26 @@ export default function CompanyList() {
     } catch { message.error('删除失败'); }
   };
 
-  const columns = [
+  const columns: TableColumnsType<CompanyLogo> = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
     { title: '名称', dataIndex: 'name', key: 'name' },
-    { title: 'Logo', dataIndex: 'logo_url', key: 'logo_url', width: 80,
-      render: (v: string) => v ? <Image src={v} width={40} height={40} style={{ borderRadius: 4, objectFit: 'contain' }} /> : <span style={{ color: '#ccc' }}>—</span>,
+    { title: 'Logo', dataIndex: 'logo', key: 'logo_url', width: 80,
+      render: (_v: string, record: CompanyLogo) => record.logo ? <Image src={record.logo} width={40} height={40} style={{ borderRadius: 4, objectFit: 'contain' }} /> : <span style={{ color: '#ccc' }}>—</span>,
     },
   ];
 
   if (isOperatorOrAdmin) {
     columns.push({
-      title: '操作', key: 'actions', width: 120,
+      title: '操作', key: 'actions', width: 100,
       render: (_: unknown, record: CompanyLogo) => (
-        <Space>
-          <Button type="link" icon={<EditOutlined />} onClick={() => openEdit(record)} />
+        <Space size={0}>
+          <Tooltip title="编辑">
+            <Button type="link" icon={<EditOutlined />} onClick={() => openEdit(record)} />
+          </Tooltip>
           <Popconfirm title="确认删除？" onConfirm={() => handleDelete(record.id)}>
-            <Button type="link" danger icon={<DeleteOutlined />} />
+            <Tooltip title="删除">
+              <Button type="link" danger icon={<DeleteOutlined />} />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),
@@ -142,7 +146,7 @@ export default function CompanyList() {
           <Form.Item name="name" label="名称" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="logo_url" label="Logo" rules={[{ required: true }]}>
+          <Form.Item name="logo" label="Logo" rules={[{ required: true }]}>
             <LogoUploadField />
           </Form.Item>
         </Form>

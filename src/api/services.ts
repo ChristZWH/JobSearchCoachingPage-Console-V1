@@ -2,11 +2,11 @@ import client from './client';
 
 export interface ServiceCategory {
   id: string;
-  name: string;
+  title: string;
   description: string;
-  sub_services: SubService[];
-  created_at: string;
-  updated_at: string;
+  icon: string;
+  backgroundImage: string;
+  subServices: SubService[];
 }
 
 export interface SubService {
@@ -18,9 +18,10 @@ export interface SubService {
 export interface ServiceStage {
   id: number;
   title: string;
+  subtitle: string;
+  description: string;
   details: Record<string, unknown>[];
-  created_at: string;
-  updated_at: string;
+  image: string;
 }
 
 // Service Categories

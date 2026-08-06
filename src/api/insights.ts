@@ -5,10 +5,13 @@ import { toPaginated } from './mentors';
 export interface IndustryInsight {
   id: number;
   title: string;
-  slug: string;
+  category: string;
+  excerpt: string;
   content: string;
-  created_at: string;
-  updated_at: string;
+  date: string;
+  image: string;
+  readTime: string;
+  slug: string;
 }
 
 export async function getInsights(params?: ListParams): Promise<PaginatedResponse<IndustryInsight>> {

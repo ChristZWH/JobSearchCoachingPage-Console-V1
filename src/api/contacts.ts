@@ -6,10 +6,9 @@ export interface ContactSubmission {
   id: number;
   name: string;
   email: string;
+  industry: string;
   message: string;
   processed: boolean;
-  created_at: string;
-  updated_at: string;
 }
 
 export async function getContacts(params?: ListParams): Promise<PaginatedResponse<ContactSubmission>> {
