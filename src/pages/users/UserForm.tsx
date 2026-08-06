@@ -26,7 +26,7 @@ export default function UserForm() {
             form.setFieldsValue({ display_name: u.display_name, role: u.role, status: u.status });
           }
         })
-        .catch(() => message.error('Failed to load user'))
+        .catch(() => message.error('加载用户失败'))
         .finally(() => setLoading(false));
     }
   }, [id, isEdit, form]);
@@ -44,13 +44,13 @@ export default function UserForm() {
           payload.password = values.password;
         }
         await updateUser(Number(id), payload);
-        message.success('User updated');
+        message.success('用户更新成功');
       } else {
         await createUser(values as { username: string; password: string; display_name: string; role: string });
-        message.success('User created');
+        message.success('用户创建成功');
       }
       navigate('/users');
-    } catch { message.error('Failed to save'); }
+    } catch { message.error('保存失败'); }
     finally { setSaving(false); }
   };
 
@@ -58,52 +58,52 @@ export default function UserForm() {
 
   return (
     <Card
-      title={<Title level={4}>{isEdit ? 'Edit User' : 'New User'}</Title>}
-      extra={<Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/users')}>Back</Button>}
+      title={<Title level={4}>{isEdit ? '编辑用户' : '新增用户'}</Title>}
+      extra={<Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/users')}>返回</Button>}
     >
       <Form form={form} layout="vertical" onFinish={onFinish} style={{ maxWidth: 500 }}>
         {!isEdit && (
           <>
-            <Form.Item name="username" label="Username" rules={[{ required: true, min: 3 }]}>
+            <Form.Item name="username" label="用户名" rules={[{ required: true, min: 3 }]}>
               <Input autoComplete="off" />
             </Form.Item>
-            <Form.Item name="password" label="Password" rules={[{ required: true, min: 8 }]}>
+            <Form.Item name="password" label="密码" rules={[{ required: true, min: 8 }]}>
               <Input.Password autoComplete="new-password" />
             </Form.Item>
           </>
         )}
 
-        <Form.Item name="display_name" label="Display Name" rules={[{ required: true }]}>
+        <Form.Item name="display_name" label="显示名称" rules={[{ required: true }]}>
           <Input />
         </Form.Item>
 
-        <Form.Item name="role" label="Role" rules={[{ required: true }]}>
+        <Form.Item name="role" label="角色" rules={[{ required: true }]}>
           <Select options={[
-            { label: 'Admin', value: 'admin' },
-            { label: 'Operator', value: 'operator' },
-            { label: 'Normal', value: 'normal' },
+            { label: '管理员', value: 'admin' },
+            { label: '运营', value: 'operator' },
+            { label: '普通', value: 'normal' },
           ]} />
         </Form.Item>
 
         {isEdit && (
           <>
-            <Form.Item name="status" label="Status">
+            <Form.Item name="status" label="状态">
               <Select options={[
-                { label: 'Active', value: 1 },
-                { label: 'Disabled', value: 0 },
+                { label: '启用', value: 1 },
+                { label: '禁用', value: 0 },
               ]} />
             </Form.Item>
 
             <Form.Item
-              name="password" label="New Password"
-              tooltip="Leave blank to keep current password"
-              rules={[{ min: 8, message: 'Minimum 8 characters' }]}
+              name="password" label="新密码"
+              tooltip="留空则保持当前密码"
+              rules={[{ min: 8, message: '最少8个字符' }]}
             >
-              <Input.Password placeholder="Leave blank to keep current" autoComplete="new-password" />
+              <Input.Password placeholder="留空则保持当前密码" autoComplete="new-password" />
             </Form.Item>
 
             <p style={{ color: '#999' }}>
-              Username: <strong>{user?.username}</strong> (cannot be changed)
+              用户名: <strong>{user?.username}</strong> (不可修改)
             </p>
           </>
         )}
@@ -111,9 +111,9 @@ export default function UserForm() {
         <Form.Item>
           <Space>
             <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={saving}>
-              {isEdit ? 'Update' : 'Create'}
+              {isEdit ? '更新' : '创建'}
             </Button>
-            <Button onClick={() => navigate('/users')}>Cancel</Button>
+            <Button onClick={() => navigate('/users')}>取消</Button>
           </Space>
         </Form.Item>
       </Form>

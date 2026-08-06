@@ -21,36 +21,36 @@ export default function CaseList() {
     try {
       const res = await getCases({ page: p, page_size: 20, search: s || undefined });
       setData(res.data); setTotal(res.total);
-    } catch { message.error('Failed to load'); }
+    } catch { message.error('加载失败'); }
     finally { setLoading(false); }
   }, [page, search]);
 
   useEffect(() => { load(); }, [load]);
 
   const handleDelete = async (id: number) => {
-    try { await deleteCase(id); message.success('Deleted'); load(); }
-    catch { message.error('Failed to delete'); }
+    try { await deleteCase(id); message.success('删除成功'); load(); }
+    catch { message.error('删除失败'); }
   };
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 70 },
-    { title: 'Title', dataIndex: 'title', key: 'title', ellipsis: true },
-    { title: 'Category', dataIndex: 'category', key: 'category', width: 120,
+    { title: '标题', dataIndex: 'title', key: 'title', ellipsis: true },
+    { title: '分类', dataIndex: 'category', key: 'category', width: 120,
       render: (v: string) => <Tag>{v}</Tag>,
     },
-    { title: 'Content', dataIndex: 'content', key: 'content', ellipsis: true, width: 300,
+    { title: '内容', dataIndex: 'content', key: 'content', ellipsis: true, width: 300,
       render: (v: string) => v?.substring(0, 100) ?? '',
     },
   ];
 
   if (isOperatorOrAdmin) {
     columns.push({
-      title: 'Actions', key: 'actions', width: 140,
+      title: '操作', key: 'actions', width: 140,
       render: (_: unknown, record: StudentCase) => (
         <Space>
-          <Button type="link" icon={<EditOutlined />} onClick={() => navigate(`/cases/${record.id}/edit`)}>Edit</Button>
-          <Popconfirm title="Delete?" onConfirm={() => handleDelete(record.id)}>
-            <Button type="link" danger icon={<DeleteOutlined />}>Delete</Button>
+          <Button type="link" icon={<EditOutlined />} onClick={() => navigate(`/cases/${record.id}/edit`)}>编辑</Button>
+          <Popconfirm title="确认删除？" onConfirm={() => handleDelete(record.id)}>
+            <Button type="link" danger icon={<DeleteOutlined />}>删除</Button>
           </Popconfirm>
         </Space>
       ),
@@ -60,11 +60,11 @@ export default function CaseList() {
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <Title level={4}>Student Cases</Title>
-        {isOperatorOrAdmin && <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/cases/new')}>Add</Button>}
+        <Title level={4}>学员案例</Title>
+        {isOperatorOrAdmin && <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/cases/new')}>新增</Button>}
       </div>
       <Input.Search
-        placeholder="Search cases..."
+        placeholder="搜索案例..."
         allowClear
         onSearch={(v) => { setPage(1); setSearch(v); load(1, v); }}
         style={{ marginBottom: 16, maxWidth: 400 }}

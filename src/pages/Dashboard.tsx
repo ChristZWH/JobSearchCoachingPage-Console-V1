@@ -49,10 +49,10 @@ function StatCard({ label, value, icon, color, bg }: StatCardProps) {
 }
 
 const statCards = [
-  { label: 'Mentors', key: 'mentors' as const, icon: <TeamOutlined />, color: '#2b6cb0', bg: '#ebf4ff' },
-  { label: 'Student Cases', key: 'cases' as const, icon: <FileTextOutlined />, color: '#2f855a', bg: '#f0fff4' },
-  { label: 'Insights', key: 'insights' as const, icon: <BulbOutlined />, color: '#c05621', bg: '#fffaf0' },
-  { label: 'Contacts', key: 'contacts' as const, icon: <MailOutlined />, color: '#6b46c1', bg: '#faf5ff' },
+  { label: '导师', key: 'mentors' as const, icon: <TeamOutlined />, color: '#2b6cb0', bg: '#ebf4ff' },
+  { label: '学员案例', key: 'cases' as const, icon: <FileTextOutlined />, color: '#2f855a', bg: '#f0fff4' },
+  { label: '行业洞察', key: 'insights' as const, icon: <BulbOutlined />, color: '#c05621', bg: '#fffaf0' },
+  { label: '咨询', key: 'contacts' as const, icon: <MailOutlined />, color: '#6b46c1', bg: '#faf5ff' },
 ];
 
 export default function Dashboard() {
@@ -92,11 +92,11 @@ export default function Dashboard() {
 
   const logColumns = [
     {
-      title: 'User', dataIndex: 'username', key: 'username', width: 130,
+      title: '用户', dataIndex: 'username', key: 'username', width: 130,
       render: (v: string) => <span style={{ fontWeight: 500, color: '#2d3748' }}>{v}</span>,
     },
     {
-      title: 'Action', dataIndex: 'action', key: 'action', width: 100,
+      title: '操作', dataIndex: 'action', key: 'action', width: 100,
       render: (v: string) => (
         <span style={{
           display: 'inline-block', padding: '2px 10px', borderRadius: 4,
@@ -107,10 +107,10 @@ export default function Dashboard() {
         </span>
       ),
     },
-    { title: 'Resource', dataIndex: 'resource', key: 'resource', width: 150,
+    { title: '资源', dataIndex: 'resource', key: 'resource', width: 150,
       render: (v: string) => <span style={{ color: '#4a5568' }}>{v}</span>,
     },
-    { title: 'Time', dataIndex: 'created_at', key: 'created_at', width: 180,
+    { title: '时间', dataIndex: 'created_at', key: 'created_at', width: 180,
       render: (v: string) => <span style={{ color: '#a0aec0', fontSize: 12 }}>{v ? new Date(v).toLocaleString() : '-'}</span>,
     },
   ];
@@ -118,8 +118,8 @@ export default function Dashboard() {
   return (
     <Spin spinning={loading}>
       <div style={{ marginBottom: 28 }}>
-        <Title level={4} style={{ margin: 0, fontWeight: 600, color: '#1a202c' }}>Dashboard</Title>
-        <div style={{ fontSize: 13, color: '#a0aec0', marginTop: 4 }}>Overview of your coaching platform</div>
+        <Title level={4} style={{ margin: 0, fontWeight: 600, color: '#1a202c' }}>仪表盘</Title>
+        <div style={{ fontSize: 13, color: '#a0aec0', marginTop: 4 }}>平台概览</div>
       </div>
 
       <Row gutter={[16, 16]}>
@@ -134,7 +134,7 @@ export default function Dashboard() {
         title={
           <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <ClockCircleOutlined style={{ color: '#718096' }} />
-            <span style={{ fontSize: 14, fontWeight: 600, color: '#2d3748' }}>Recent Activity</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#2d3748' }}>近期动态</span>
           </span>
         }
         style={{ marginTop: 24, borderRadius: 10, border: '1px solid #edf2f7' }}

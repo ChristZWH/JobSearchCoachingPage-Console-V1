@@ -20,7 +20,7 @@ export default function InsightForm() {
       setLoading(true);
       getInsight(Number(id))
         .then((c) => form.setFieldsValue(c))
-        .catch(() => message.error('Failed to load insight'))
+        .catch(() => message.error('加载洞察失败'))
         .finally(() => setLoading(false));
     }
   }, [id, isEdit, form]);
@@ -30,13 +30,13 @@ export default function InsightForm() {
     try {
       if (isEdit) {
         await updateInsight(Number(id), values);
-        message.success('Insight updated');
+        message.success('洞察更新成功');
       } else {
         await createInsight(values);
-        message.success('Insight created');
+        message.success('洞察创建成功');
       }
       navigate('/insights');
-    } catch { message.error('Failed to save'); }
+    } catch { message.error('保存失败'); }
     finally { setSaving(false); }
   };
 
@@ -44,29 +44,29 @@ export default function InsightForm() {
 
   return (
     <Card
-      title={<Title level={4}>{isEdit ? 'Edit Insight' : 'New Insight'}</Title>}
-      extra={<Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/insights')}>Back</Button>}
+      title={<Title level={4}>{isEdit ? '编辑洞察' : '新增洞察'}</Title>}
+      extra={<Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/insights')}>返回</Button>}
     >
       <Form form={form} layout="vertical" onFinish={onFinish} style={{ maxWidth: 900 }}>
-        <Form.Item name="title" label="Title" rules={[{ required: true }]}>
+        <Form.Item name="title" label="标题" rules={[{ required: true }]}>
           <Input />
         </Form.Item>
         <Form.Item
-          name="slug" label="Slug"
-          rules={[{ required: true, message: 'URL-friendly unique slug' }]}
-          tooltip="URL-friendly unique identifier (e.g. 'my-insight-post')"
+          name="slug" label="别名"
+          rules={[{ required: true, message: '请输入URL友好的唯一标识' }]}
+          tooltip="URL友好的唯一标识（例如：'my-insight-post'）"
         >
           <Input disabled={isEdit} />
         </Form.Item>
-        <Form.Item name="content" label="Content" rules={[{ required: true }]}>
-          <TextArea rows={12} placeholder="Full content in markdown or HTML..." />
+        <Form.Item name="content" label="内容" rules={[{ required: true }]}>
+          <TextArea rows={12} placeholder="Markdown或HTML格式的完整内容..." />
         </Form.Item>
         <Form.Item>
           <Space>
             <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={saving}>
-              {isEdit ? 'Update' : 'Create'}
+              {isEdit ? '更新' : '创建'}
             </Button>
-            <Button onClick={() => navigate('/insights')}>Cancel</Button>
+            <Button onClick={() => navigate('/insights')}>取消</Button>
           </Space>
         </Form.Item>
       </Form>

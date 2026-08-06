@@ -24,7 +24,7 @@ export default function TagList() {
   const load = useCallback(async () => {
     setLoading(true);
     try { const res = await getTags({ page_size: 200 }); setData(res.data); }
-    catch { message.error('Failed to load'); }
+    catch { message.error('加载失败'); }
     finally { setLoading(false); }
   }, []);
 
@@ -37,31 +37,31 @@ export default function TagList() {
     const values = await form.validateFields();
     try {
       editing ? await updateTag(editing.id, values) : await createTag(values);
-      message.success(editing ? 'Updated' : 'Created');
+      message.success(editing ? '更新成功' : '创建成功');
       setModalOpen(false); load();
-    } catch { message.error('Failed to save'); }
+    } catch { message.error('保存失败'); }
   };
 
   const handleDelete = async (id: number) => {
-    try { await deleteTag(id); message.success('Deleted'); load(); }
-    catch { message.error('Failed to delete'); }
+    try { await deleteTag(id); message.success('删除成功'); load(); }
+    catch { message.error('删除失败'); }
   };
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
-    { title: 'Name', dataIndex: 'name', key: 'name' },
-    { title: 'Category', dataIndex: 'category', key: 'category', width: 140,
+    { title: '名称', dataIndex: 'name', key: 'name' },
+    { title: '分类', dataIndex: 'category', key: 'category', width: 140,
       render: (v: string) => <Tag color={categoryColors[v] || 'default'}>{v}</Tag>,
     },
   ];
 
   if (isOperatorOrAdmin) {
     columns.push({
-      title: 'Actions', key: 'actions', width: 120,
+      title: '操作', key: 'actions', width: 120,
       render: (_: unknown, record: TagType) => (
         <Space>
           <Button type="link" icon={<EditOutlined />} onClick={() => openEdit(record)} />
-          <Popconfirm title="Delete?" onConfirm={() => handleDelete(record.id)}>
+          <Popconfirm title="确认删除？" onConfirm={() => handleDelete(record.id)}>
             <Button type="link" danger icon={<DeleteOutlined />} />
           </Popconfirm>
         </Space>
@@ -72,20 +72,20 @@ export default function TagList() {
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <Title level={4}>Tags</Title>
-        {isOperatorOrAdmin && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>Add</Button>}
+        <Title level={4}>标签管理</Title>
+        {isOperatorOrAdmin && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>新增</Button>}
       </div>
       <Table dataSource={data} columns={columns} rowKey="id" loading={loading} />
 
-      <Modal title={editing ? 'Edit Tag' : 'Add Tag'} open={modalOpen} onOk={handleOk} onCancel={() => setModalOpen(false)} destroyOnClose>
+      <Modal title={editing ? '编辑标签' : '新增标签'} open={modalOpen} onOk={handleOk} onCancel={() => setModalOpen(false)} destroyOnClose>
         <Form form={form} layout="vertical">
-          <Form.Item name="name" label="Name" rules={[{ required: true }]}><Input /></Form.Item>
-          <Form.Item name="category" label="Category" rules={[{ required: true }]}>
+          <Form.Item name="name" label="名称" rules={[{ required: true }]}><Input /></Form.Item>
+          <Form.Item name="category" label="分类" rules={[{ required: true }]}>
             <Select options={[
-              { label: 'Industry', value: 'industry' },
-              { label: 'Company', value: 'company' },
-              { label: 'Department', value: 'department' },
-              { label: 'School', value: 'school' },
+              { label: '行业', value: 'industry' },
+              { label: '公司', value: 'company' },
+              { label: '部门', value: 'department' },
+              { label: '学校', value: 'school' },
             ]} />
           </Form.Item>
         </Form>

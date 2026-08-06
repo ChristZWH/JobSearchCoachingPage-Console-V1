@@ -70,7 +70,7 @@ export default function JsonEditor({
       ))}
       {!readonly && (
         <Button type="dashed" onClick={handleAdd} icon={<PlusOutlined />} style={{ marginTop: 4 }}>
-          Add Entry
+          添加条目
         </Button>
       )}
     </div>
@@ -130,7 +130,7 @@ export function StringArrayEditor({
       ))}
       {!readonly && (
         <Button type="dashed" onClick={handleAdd} icon={<PlusOutlined />} style={{ marginTop: 4 }}>
-          Add
+          添加
         </Button>
       )}
     </div>

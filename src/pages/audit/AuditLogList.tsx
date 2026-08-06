@@ -27,7 +27,7 @@ export default function AuditLogList() {
     try {
       const res = await getAuditLogs({ ...filters, page: p, page_size: 20 });
       setData(res.data); setTotal(res.total);
-    } catch { message.error('Failed to load audit logs'); }
+    } catch { message.error('加载操作日志失败'); }
     finally { setLoading(false); }
   }, [page, filters]);
 
@@ -35,31 +35,31 @@ export default function AuditLogList() {
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 70 },
-    { title: 'User', dataIndex: 'username', key: 'username', width: 120 },
-    { title: 'Action', dataIndex: 'action', key: 'action', width: 100,
+    { title: '用户', dataIndex: 'username', key: 'username', width: 120 },
+    { title: '操作', dataIndex: 'action', key: 'action', width: 100,
       render: (v: string) => <Tag color={actionColors[v] || 'default'}>{v}</Tag>,
     },
-    { title: 'Resource', dataIndex: 'resource', key: 'resource', width: 140 },
-    { title: 'Resource ID', dataIndex: 'resource_id', key: 'resource_id', width: 100 },
+    { title: '资源', dataIndex: 'resource', key: 'resource', width: 140 },
+    { title: '资源ID', dataIndex: 'resource_id', key: 'resource_id', width: 100 },
     { title: 'IP', dataIndex: 'ip_address', key: 'ip_address', width: 130 },
-    { title: 'Time', dataIndex: 'created_at', key: 'created_at', width: 180,
+    { title: '时间', dataIndex: 'created_at', key: 'created_at', width: 180,
       render: (v: string) => v ? dayjs(v).format('YYYY-MM-DD HH:mm:ss') : '-',
     },
     {
-      title: 'Detail', key: 'detail', width: 80,
+      title: '详情', key: 'detail', width: 80,
       render: (_: unknown, record: AuditLog) => (
-        record.detail ? <a onClick={() => setDetailModal(record)}>View</a> : <span style={{ color: '#ccc' }}>—</span>
+        record.detail ? <a onClick={() => setDetailModal(record)}>查看</a> : <span style={{ color: '#ccc' }}>—</span>
       ),
     },
   ];
 
   return (
     <>
-      <Title level={4} style={{ marginBottom: 16 }}>Audit Logs</Title>
+      <Title level={4} style={{ marginBottom: 16 }}>操作日志</Title>
 
       <Space wrap style={{ marginBottom: 16 }}>
         <Select
-          placeholder="Filter by Action"
+          placeholder="按操作筛选"
           allowClear
           style={{ width: 150 }}
           onChange={(v) => { setFilters((f) => ({ ...f, action: v })); setPage(1); }}
@@ -72,22 +72,22 @@ export default function AuditLogList() {
           ]}
         />
         <Select
-          placeholder="Filter by Resource"
+          placeholder="按资源筛选"
           allowClear
           style={{ width: 180 }}
           onChange={(v) => { setFilters((f) => ({ ...f, resource: v })); setPage(1); }}
           options={[
-            { label: 'Mentors', value: 'mentors' },
-            { label: 'Cases', value: 'student_cases' },
-            { label: 'Insights', value: 'industry_insights' },
-            { label: 'Services', value: 'service_categories' },
-            { label: 'Stages', value: 'service_stages' },
-            { label: 'Site Stats', value: 'site_stats' },
-            { label: 'Companies', value: 'company_logos' },
-            { label: 'Why Us', value: 'why_us_features' },
-            { label: 'Tags', value: 'tags' },
-            { label: 'Contacts', value: 'contact_submissions' },
-            { label: 'Users', value: 'users' },
+            { label: '导师', value: 'mentors' },
+            { label: '案例', value: 'student_cases' },
+            { label: '洞察', value: 'industry_insights' },
+            { label: '服务分类', value: 'service_categories' },
+            { label: '服务阶段', value: 'service_stages' },
+            { label: '网站统计', value: 'site_stats' },
+            { label: '合作企业', value: 'company_logos' },
+            { label: '为什么选择我们', value: 'why_us_features' },
+            { label: '标签', value: 'tags' },
+            { label: '咨询', value: 'contact_submissions' },
+            { label: '用户', value: 'users' },
           ]}
         />
         <RangePicker
@@ -112,7 +112,7 @@ export default function AuditLogList() {
       />
 
       <Modal
-        title="Audit Detail"
+        title="操作详情"
         open={!!detailModal}
         onCancel={() => setDetailModal(null)}
         footer={null}

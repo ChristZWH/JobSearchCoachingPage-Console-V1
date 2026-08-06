@@ -15,7 +15,7 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <Spin size="large" tip="Loading..." />
+        <Spin size="large" tip="加载中..." />
       </div>
     );
   }
@@ -29,10 +29,10 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
       <Result
         status="403"
         title="403"
-        subTitle="Sorry, you need admin privileges to access this page."
+        subTitle="抱歉，您需要管理员权限才能访问此页面。"
         extra={
           <Button type="primary" onClick={() => window.history.back()}>
-            Go Back
+            返回
           </Button>
         }
       />
@@ -44,10 +44,10 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
       <Result
         status="403"
         title="403"
-        subTitle="Sorry, you don't have permission to access this page."
+        subTitle="抱歉，您没有权限访问此页面。"
         extra={
           <Button type="primary" onClick={() => window.history.back()}>
-            Go Back
+            返回
           </Button>
         }
       />

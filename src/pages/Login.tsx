@@ -18,11 +18,11 @@ export default function Login() {
     setLoading(true);
     try {
       await login(values);
-      message.success('Login successful');
+      message.success('登录成功');
       navigate(from, { replace: true });
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { message?: string } } };
-      message.error(axiosError?.response?.data?.message || 'Login failed');
+      message.error(axiosError?.response?.data?.message || '登录失败');
     } finally {
       setLoading(false);
     }
@@ -66,12 +66,12 @@ export default function Login() {
             <RocketOutlined style={{ fontSize: 32, color: '#fff' }} />
           </div>
           <Title level={2} style={{ color: '#fff', marginBottom: 12, fontWeight: 600, letterSpacing: -0.5 }}>
-            JobSearch Admin
+            求职辅导管理后台
           </Title>
           <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15, lineHeight: 1.6 }}>
-            Career coaching platform
+            求职辅导平台
             <br />
-            management console
+            管理控制台
           </Text>
         </div>
 
@@ -79,7 +79,7 @@ export default function Login() {
           position: 'absolute', bottom: 48, textAlign: 'center',
           color: 'rgba(255,255,255,0.35)', fontSize: 12,
         }}>
-          &copy; {new Date().getFullYear()} JobSearch Coaching. All rights reserved.
+          &copy; {new Date().getFullYear()} 求职辅导 版权所有
         </div>
       </div>
 
@@ -97,9 +97,9 @@ export default function Login() {
         <div style={{ width: 380 }}>
           <div style={{ marginBottom: 40 }}>
             <Title level={3} style={{ marginBottom: 8, fontWeight: 600 }}>
-              Sign in
+              登录
             </Title>
-            <Text type="secondary">Enter your credentials to access the console</Text>
+            <Text type="secondary">请输入您的账号信息</Text>
           </div>
 
           <Form
@@ -111,11 +111,11 @@ export default function Login() {
           >
             <Form.Item
               name="username"
-              rules={[{ required: true, message: 'Please enter your username' }]}
+              rules={[{ required: true, message: '请输入用户名' }]}
             >
               <Input
                 prefix={<UserOutlined style={{ color: '#a0aec0' }} />}
-                placeholder="Username"
+                placeholder="用户名"
                 autoComplete="username"
                 style={{ borderRadius: 8, height: 48 }}
               />
@@ -123,11 +123,11 @@ export default function Login() {
 
             <Form.Item
               name="password"
-              rules={[{ required: true, message: 'Please enter your password' }]}
+              rules={[{ required: true, message: '请输入密码' }]}
             >
               <Input.Password
                 prefix={<LockOutlined style={{ color: '#a0aec0' }} />}
-                placeholder="Password"
+                placeholder="密码"
                 autoComplete="current-password"
                 style={{ borderRadius: 8, height: 48 }}
               />
@@ -144,14 +144,14 @@ export default function Login() {
                   background: '#1a365d', borderColor: '#1a365d',
                 }}
               >
-                Sign In
+                登录
               </Button>
             </Form.Item>
           </Form>
 
           <div style={{ textAlign: 'center', marginTop: 24 }}>
             <Text type="secondary" style={{ fontSize: 12 }}>
-              Default credentials: admin / Admin@123
+              默认账号: admin / Admin@123
             </Text>
           </div>
         </div>

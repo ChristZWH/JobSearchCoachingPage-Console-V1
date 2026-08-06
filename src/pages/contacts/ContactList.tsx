@@ -19,7 +19,7 @@ export default function ContactList() {
     try {
       const res = await getContacts({ page: p, page_size: 20 });
       setData(res.data); setTotal(res.total);
-    } catch { message.error('Failed to load'); }
+    } catch { message.error('加载失败'); }
     finally { setLoading(false); }
   }, [page]);
 
@@ -28,29 +28,29 @@ export default function ContactList() {
   const handleProcess = async (id: number) => {
     try {
       await markContactProcessed(id);
-      message.success('Marked as processed');
+      message.success('已标记为已处理');
       load();
-    } catch { message.error('Failed'); }
+    } catch { message.error('处理失败'); }
   };
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 70 },
-    { title: 'Name', dataIndex: 'name', key: 'name', width: 120 },
-    { title: 'Email', dataIndex: 'email', key: 'email', width: 200 },
-    { title: 'Message', dataIndex: 'message', key: 'message', ellipsis: true },
-    { title: 'Status', dataIndex: 'processed', key: 'processed', width: 100,
-      render: (v: boolean) => v ? <Tag color="green">Processed</Tag> : <Tag color="orange">Pending</Tag>,
+    { title: '姓名', dataIndex: 'name', key: 'name', width: 120 },
+    { title: '邮箱', dataIndex: 'email', key: 'email', width: 200 },
+    { title: '留言', dataIndex: 'message', key: 'message', ellipsis: true },
+    { title: '状态', dataIndex: 'processed', key: 'processed', width: 100,
+      render: (v: boolean) => v ? <Tag color="green">已处理</Tag> : <Tag color="orange">待处理</Tag>,
     },
-    { title: 'Date', dataIndex: 'created_at', key: 'created_at', width: 170,
+    { title: '日期', dataIndex: 'created_at', key: 'created_at', width: 170,
       render: (v: string) => v ? new Date(v).toLocaleString() : '-',
     },
     {
-      title: 'Actions', key: 'actions', width: 140,
+      title: '操作', key: 'actions', width: 140,
       render: (_: unknown, record: ContactSubmission) => (
         <Space>
-          <Button type="link" icon={<EyeOutlined />} onClick={() => setViewing(record)}>View</Button>
+          <Button type="link" icon={<EyeOutlined />} onClick={() => setViewing(record)}>查看</Button>
           {isOperatorOrAdmin && !record.processed && (
-            <Button type="link" icon={<CheckOutlined />} onClick={() => handleProcess(record.id)}>Done</Button>
+            <Button type="link" icon={<CheckOutlined />} onClick={() => handleProcess(record.id)}>处理</Button>
           )}
         </Space>
       ),
@@ -59,17 +59,17 @@ export default function ContactList() {
 
   return (
     <>
-      <Title level={4} style={{ marginBottom: 16 }}>Contact Submissions</Title>
+      <Title level={4} style={{ marginBottom: 16 }}>咨询管理</Title>
       <Table
         dataSource={data} columns={columns} rowKey="id" loading={loading}
         pagination={{ current: page, total, pageSize: 20, onChange: (p) => { setPage(p); load(p); } }}
       />
 
-      <Modal title="Message Detail" open={!!viewing} onCancel={() => setViewing(null)} footer={null} width={600}>
+      <Modal title="留言详情" open={!!viewing} onCancel={() => setViewing(null)} footer={null} width={600}>
         {viewing && (
           <>
-            <p><strong>From:</strong> {viewing.name} ({viewing.email})</p>
-            <p><strong>Date:</strong> {new Date(viewing.created_at).toLocaleString()}</p>
+            <p><strong>来自:</strong> {viewing.name} ({viewing.email})</p>
+            <p><strong>日期:</strong> {new Date(viewing.created_at).toLocaleString()}</p>
             <Paragraph style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{viewing.message}</Paragraph>
           </>
         )}

@@ -22,7 +22,7 @@ function CategoryPanel() {
   const load = useCallback(async () => {
     setLoading(true);
     try { const res = await getServiceCategories(); setData(res); }
-    catch { message.error('Failed to load'); }
+    catch { message.error('加载失败'); }
     finally { setLoading(false); }
   }, []);
 
@@ -35,32 +35,32 @@ function CategoryPanel() {
     const values = await form.validateFields();
     try {
       editing ? await updateServiceCategory(editing.id, values) : await createServiceCategory(values);
-      message.success(editing ? 'Updated' : 'Created');
+      message.success(editing ? '更新成功' : '创建成功');
       setModalOpen(false); load();
-    } catch { message.error('Failed to save'); }
+    } catch { message.error('保存失败'); }
   };
 
   const handleDelete = async (id: string) => {
-    try { await deleteServiceCategory(id); message.success('Deleted'); load(); }
-    catch { message.error('Failed to delete'); }
+    try { await deleteServiceCategory(id); message.success('删除成功'); load(); }
+    catch { message.error('删除失败'); }
   };
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 100 },
-    { title: 'Name', dataIndex: 'name', key: 'name' },
-    { title: 'Description', dataIndex: 'description', key: 'description', ellipsis: true },
-    { title: 'Sub Services', dataIndex: 'sub_services', key: 'sub_services',
+    { title: '名称', dataIndex: 'name', key: 'name' },
+    { title: '描述', dataIndex: 'description', key: 'description', ellipsis: true },
+    { title: '子服务', dataIndex: 'sub_services', key: 'sub_services',
       render: (v: Record<string, unknown>[]) => v?.length ?? 0,
     },
   ];
 
   if (isOperatorOrAdmin) {
     columns.push({
-      title: 'Actions', key: 'actions', width: 120,
+      title: '操作', key: 'actions', width: 120,
       render: (_: unknown, record: ServiceCategory) => (
         <Space>
           <Button type="link" icon={<EditOutlined />} onClick={() => openEdit(record)} />
-          <Popconfirm title="Delete?" onConfirm={() => handleDelete(record.id)}>
+          <Popconfirm title="确认删除？" onConfirm={() => handleDelete(record.id)}>
             <Button type="link" danger icon={<DeleteOutlined />} />
           </Popconfirm>
         </Space>
@@ -71,18 +71,18 @@ function CategoryPanel() {
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <Title level={4}>Service Categories</Title>
-        {isOperatorOrAdmin && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>Add</Button>}
+        <Title level={4}>服务分类</Title>
+        {isOperatorOrAdmin && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>新增</Button>}
       </div>
       <Table dataSource={data} columns={columns} rowKey="id" loading={loading} />
 
-      <Modal title={editing ? 'Edit Category' : 'Add Category'} open={modalOpen} onOk={handleOk} onCancel={() => setModalOpen(false)} width={600} destroyOnClose>
+      <Modal title={editing ? '编辑分类' : '新增分类'} open={modalOpen} onOk={handleOk} onCancel={() => setModalOpen(false)} width={600} destroyOnClose>
         <Form form={form} layout="vertical">
-          <Form.Item name="id" label="ID (slug)" rules={[{ required: true }]}><Input disabled={!!editing} /></Form.Item>
-          <Form.Item name="name" label="Name" rules={[{ required: true }]}><Input /></Form.Item>
-          <Form.Item name="description" label="Description"><Input.TextArea rows={2} /></Form.Item>
-          <Form.Item name="sub_services" label="Sub Services (JSON)">
-            <JsonEditor keyLabel="Name" valueLabel="Price/Desc" />
+          <Form.Item name="id" label="ID (标识)" rules={[{ required: true }]}><Input disabled={!!editing} /></Form.Item>
+          <Form.Item name="name" label="名称" rules={[{ required: true }]}><Input /></Form.Item>
+          <Form.Item name="description" label="描述"><Input.TextArea rows={2} /></Form.Item>
+          <Form.Item name="sub_services" label="子服务 (JSON)">
+            <JsonEditor keyLabel="名称" valueLabel="价格/描述" />
           </Form.Item>
         </Form>
       </Modal>
@@ -101,7 +101,7 @@ function StagePanel() {
   const load = useCallback(async () => {
     setLoading(true);
     try { const res = await getServiceStages(); setData(res); }
-    catch { message.error('Failed to load'); }
+    catch { message.error('加载失败'); }
     finally { setLoading(false); }
   }, []);
 
@@ -114,31 +114,31 @@ function StagePanel() {
     const values = await form.validateFields();
     try {
       editing ? await updateServiceStage(editing.id, values) : await createServiceStage(values);
-      message.success(editing ? 'Updated' : 'Created');
+      message.success(editing ? '更新成功' : '创建成功');
       setModalOpen(false); load();
-    } catch { message.error('Failed to save'); }
+    } catch { message.error('保存失败'); }
   };
 
   const handleDelete = async (id: number) => {
-    try { await deleteServiceStage(id); message.success('Deleted'); load(); }
-    catch { message.error('Failed to delete'); }
+    try { await deleteServiceStage(id); message.success('删除成功'); load(); }
+    catch { message.error('删除失败'); }
   };
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
-    { title: 'Title', dataIndex: 'title', key: 'title' },
-    { title: 'Details', dataIndex: 'details', key: 'details',
+    { title: '标题', dataIndex: 'title', key: 'title' },
+    { title: '详情', dataIndex: 'details', key: 'details',
       render: (v: Record<string, unknown>[]) => JSON.stringify(v).substring(0, 80) + (JSON.stringify(v).length > 80 ? '...' : ''),
     },
   ];
 
   if (isOperatorOrAdmin) {
     columns.push({
-      title: 'Actions', key: 'actions', width: 120,
+      title: '操作', key: 'actions', width: 120,
       render: (_: unknown, record: ServiceStage) => (
         <Space>
           <Button type="link" icon={<EditOutlined />} onClick={() => openEdit(record)} />
-          <Popconfirm title="Delete?" onConfirm={() => handleDelete(record.id)}>
+          <Popconfirm title="确认删除？" onConfirm={() => handleDelete(record.id)}>
             <Button type="link" danger icon={<DeleteOutlined />} />
           </Popconfirm>
         </Space>
@@ -149,16 +149,16 @@ function StagePanel() {
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <Title level={4}>Service Stages</Title>
-        {isOperatorOrAdmin && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>Add</Button>}
+        <Title level={4}>服务阶段</Title>
+        {isOperatorOrAdmin && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>新增</Button>}
       </div>
       <Table dataSource={data} columns={columns} rowKey="id" loading={loading} />
 
-      <Modal title={editing ? 'Edit Stage' : 'Add Stage'} open={modalOpen} onOk={handleOk} onCancel={() => setModalOpen(false)} width={600} destroyOnClose>
+      <Modal title={editing ? '编辑阶段' : '新增阶段'} open={modalOpen} onOk={handleOk} onCancel={() => setModalOpen(false)} width={600} destroyOnClose>
         <Form form={form} layout="vertical">
-          <Form.Item name="title" label="Title" rules={[{ required: true }]}><Input /></Form.Item>
-          <Form.Item name="details" label="Details (JSON)">
-            <JsonEditor keyLabel="Key" valueLabel="Value" />
+          <Form.Item name="title" label="标题" rules={[{ required: true }]}><Input /></Form.Item>
+          <Form.Item name="details" label="详情 (JSON)">
+            <JsonEditor keyLabel="键" valueLabel="值" />
           </Form.Item>
         </Form>
       </Modal>
@@ -169,8 +169,8 @@ function StagePanel() {
 export default function ServiceList() {
   return (
     <Tabs defaultActiveKey="categories" items={[
-      { key: 'categories', label: 'Categories', children: <CategoryPanel /> },
-      { key: 'stages', label: 'Stages', children: <StagePanel /> },
+      { key: 'categories', label: '分类', children: <CategoryPanel /> },
+      { key: 'stages', label: '阶段', children: <StagePanel /> },
     ]} />
   );
 }

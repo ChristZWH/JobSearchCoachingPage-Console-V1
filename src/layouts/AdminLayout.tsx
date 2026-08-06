@@ -32,18 +32,18 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { key: '/', icon: <DashboardOutlined />, label: 'Dashboard' },
-  { key: '/mentors', icon: <TeamOutlined />, label: 'Mentors' },
-  { key: '/cases', icon: <FileTextOutlined />, label: 'Student Cases' },
-  { key: '/insights', icon: <BulbOutlined />, label: 'Insights' },
-  { key: '/services', icon: <AppstoreOutlined />, label: 'Services' },
-  { key: '/site-stats', icon: <BarChartOutlined />, label: 'Site Stats' },
-  { key: '/companies', icon: <PictureOutlined />, label: 'Companies' },
-  { key: '/why-us', icon: <StarOutlined />, label: 'Why Us' },
-  { key: '/tags', icon: <TagsOutlined />, label: 'Tags' },
-  { key: '/contacts', icon: <MailOutlined />, label: 'Contacts' },
-  { key: '/audit-logs', icon: <AuditOutlined />, label: 'Audit Logs', operatorPlus: true },
-  { key: '/users', icon: <UserOutlined />, label: 'Users', adminOnly: true },
+  { key: '/', icon: <DashboardOutlined />, label: '仪表盘' },
+  { key: '/mentors', icon: <TeamOutlined />, label: '导师管理' },
+  { key: '/cases', icon: <FileTextOutlined />, label: '学员案例' },
+  { key: '/insights', icon: <BulbOutlined />, label: '行业洞察' },
+  { key: '/services', icon: <AppstoreOutlined />, label: '服务管理' },
+  { key: '/site-stats', icon: <BarChartOutlined />, label: '网站统计' },
+  { key: '/companies', icon: <PictureOutlined />, label: '合作企业' },
+  { key: '/why-us', icon: <StarOutlined />, label: '为什么选择我们' },
+  { key: '/tags', icon: <TagsOutlined />, label: '标签管理' },
+  { key: '/contacts', icon: <MailOutlined />, label: '咨询管理' },
+  { key: '/audit-logs', icon: <AuditOutlined />, label: '操作日志', operatorPlus: true },
+  { key: '/users', icon: <UserOutlined />, label: '用户管理', adminOnly: true },
 ];
 
 // Role tag colors
@@ -90,7 +90,7 @@ export default function AdminLayout() {
     { type: 'divider' },
     {
       key: 'logout',
-      label: 'Sign out',
+      label: '退出登录',
       icon: <LogoutOutlined />,
       danger: true,
     },
@@ -151,7 +151,7 @@ export default function AdminLayout() {
               marginLeft: 12, whiteSpace: 'nowrap',
               letterSpacing: -0.3,
             }}>
-              JobSearch
+              求职辅导
             </span>
           )}
         </div>
