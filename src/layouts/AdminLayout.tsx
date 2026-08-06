@@ -107,7 +107,7 @@ export default function AdminLayout() {
   const brandColor = '#1a365d';
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout style={{ height: '100vh', overflow: 'hidden' }}>
       <Sider
         trigger={null}
         collapsible
@@ -174,7 +174,7 @@ export default function AdminLayout() {
         />
       </Sider>
 
-      <Layout style={{ marginLeft: collapsed ? 80 : 220, transition: 'margin-left 0.2s' }}>
+      <Layout style={{ marginLeft: collapsed ? 80 : 220, transition: 'margin-left 0.2s', height: '100%' }}>
         <Header
           style={{
             padding: '0 24px',
@@ -183,10 +183,9 @@ export default function AdminLayout() {
             alignItems: 'center',
             justifyContent: 'space-between',
             borderBottom: '1px solid #edf2f7',
-            position: 'sticky',
-            top: 0,
             zIndex: 9,
             height: 64,
+            flexShrink: 0,
           }}
         >
           <Button
@@ -212,7 +211,7 @@ export default function AdminLayout() {
           </Dropdown>
         </Header>
 
-        <Content style={{ margin: 20, padding: 24, background: '#fff', borderRadius: 10, minHeight: 280 }}>
+        <Content style={{ margin: 20, padding: 24, background: '#fff', borderRadius: 10, minHeight: 280, overflowY: 'auto', flex: 1 }}>
           <Outlet />
         </Content>
       </Layout>

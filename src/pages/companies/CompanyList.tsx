@@ -1,10 +1,51 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Table, Button, Modal, Form, Input, Space, message, Popconfirm, Typography } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Table, Button, Modal, Form, Input, Space, message, Popconfirm, Typography, Upload, Image } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons';
+import type { UploadProps } from 'antd';
 import { getCompanyLogos, createCompanyLogo, updateCompanyLogo, deleteCompanyLogo, type CompanyLogo } from '../../api/companies';
 import { useAuth } from '../../hooks/useAuth';
+import { getAccessToken } from '../../utils/storage';
 
 const { Title } = Typography;
+
+function LogoUploadField({ value, onChange }: { value?: string; onChange?: (url: string) => void }) {
+  const [urlInput, setUrlInput] = useState(value || '');
+
+  const uploadProps: UploadProps = {
+    name: 'file',
+    action: '/api/admin/upload',
+    headers: { Authorization: `Bearer ${getAccessToken()}` },
+    showUploadList: false,
+    onChange(info) {
+      if (info.file.status === 'done') {
+        const url = info.file.response?.data?.url || info.file.response?.url;
+        if (url) {
+          onChange?.(url);
+          setUrlInput(url);
+          message.success('上传成功');
+        }
+      } else if (info.file.status === 'error') {
+        message.error('上传失败');
+      }
+    },
+  };
+
+  return (
+    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+      {value && <Image src={value} width={64} height={64} style={{ borderRadius: 6, objectFit: 'contain' }} />}
+      <Upload {...uploadProps}>
+        <Button icon={<UploadOutlined />}>上传</Button>
+      </Upload>
+      <Input
+        style={{ width: 200 }}
+        placeholder="或粘贴URL"
+        value={urlInput}
+        onChange={(e) => { setUrlInput(e.target.value); onChange?.(e.target.value); }}
+        allowClear
+      />
+    </div>
+  );
+}
 
 export default function CompanyList() {
   const [data, setData] = useState<CompanyLogo[]>([]);
@@ -63,7 +104,9 @@ export default function CompanyList() {
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
     { title: '名称', dataIndex: 'name', key: 'name' },
-    { title: 'Logo链接', dataIndex: 'logo_url', key: 'logo_url', ellipsis: true },
+    { title: 'Logo', dataIndex: 'logo_url', key: 'logo_url', width: 80,
+      render: (v: string) => v ? <Image src={v} width={40} height={40} style={{ borderRadius: 4, objectFit: 'contain' }} /> : <span style={{ color: '#ccc' }}>—</span>,
+    },
   ];
 
   if (isOperatorOrAdmin) {
@@ -99,8 +142,8 @@ export default function CompanyList() {
           <Form.Item name="name" label="名称" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="logo_url" label="Logo链接" rules={[{ required: true }]}>
-            <Input />
+          <Form.Item name="logo_url" label="Logo" rules={[{ required: true }]}>
+            <LogoUploadField />
           </Form.Item>
         </Form>
       </Modal>
