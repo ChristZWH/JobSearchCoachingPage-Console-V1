@@ -23,7 +23,7 @@ export default function UserForm() {
           const u = res.data.find((u: User) => u.id === Number(id));
           if (u) {
             setUser(u);
-            form.setFieldsValue({ display_name: u.display_name, role: u.role, status: u.status });
+            form.setFieldsValue({ displayName: u.displayName, role: u.role, status: u.status });
           }
         })
         .catch(() => message.error('加载用户失败'))
@@ -36,7 +36,7 @@ export default function UserForm() {
     try {
       if (isEdit) {
         const payload: Record<string, unknown> = {
-          display_name: values.display_name,
+          displayName: values.displayName,
           role: values.role,
           status: values.status,
         };
@@ -46,7 +46,7 @@ export default function UserForm() {
         await updateUser(Number(id), payload);
         message.success('用户更新成功');
       } else {
-        await createUser(values as { username: string; password: string; display_name: string; role: string });
+        await createUser(values as { username: string; password: string; displayName: string; role: string });
         message.success('用户创建成功');
       }
       navigate('/users');
@@ -73,7 +73,7 @@ export default function UserForm() {
           </>
         )}
 
-        <Form.Item name="display_name" label="显示名称" rules={[{ required: true }]}>
+        <Form.Item name="displayName" label="显示名称" rules={[{ required: true }]}>
           <Input />
         </Form.Item>
 

@@ -48,15 +48,32 @@ export default function InsightForm() {
       extra={<Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/insights')}>返回</Button>}
     >
       <Form form={form} layout="vertical" onFinish={onFinish} style={{ maxWidth: 900 }}>
-        <Form.Item name="title" label="标题" rules={[{ required: true }]}>
-          <Input />
-        </Form.Item>
+        <Space size="middle">
+          <Form.Item name="title" label="标题" rules={[{ required: true }]}>
+            <Input style={{ width: 320 }} />
+          </Form.Item>
+          <Form.Item name="category" label="分类" rules={[{ required: true }]}>
+            <Input style={{ width: 180 }} placeholder="e.g. Finance" />
+          </Form.Item>
+          <Form.Item name="date" label="日期">
+            <Input style={{ width: 140 }} placeholder="e.g. 2024 Q1" />
+          </Form.Item>
+          <Form.Item name="readTime" label="阅读时长">
+            <Input style={{ width: 100 }} placeholder="e.g. 5 min" />
+          </Form.Item>
+        </Space>
         <Form.Item
-          name="slug" label="别名"
-          rules={[{ required: true, message: '请输入URL友好的唯一标识' }]}
-          tooltip="URL友好的唯一标识（例如：'my-insight-post'）"
+          name="slug" label="别名 (Slug)"
+          rules={[{ required: true, message: 'URL友好的唯一标识' }]}
+          tooltip="URL标识（例如：'my-insight-post'）"
         >
           <Input disabled={isEdit} />
+        </Form.Item>
+        <Form.Item name="excerpt" label="摘要">
+          <TextArea rows={2} placeholder="文章摘要..." />
+        </Form.Item>
+        <Form.Item name="image" label="封面图URL">
+          <Input placeholder="https://..." />
         </Form.Item>
         <Form.Item name="content" label="内容" rules={[{ required: true }]}>
           <TextArea rows={12} placeholder="Markdown或HTML格式的完整内容..." />

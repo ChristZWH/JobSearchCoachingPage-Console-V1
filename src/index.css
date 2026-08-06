@@ -59,3 +59,13 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #a0aec0;
 }
+
+/* New-row highlight animation */
+@keyframes mentor-highlight-fade {
+  0%   { background-color: #ebf8ff; }
+  100% { background-color: transparent; }
+}
+
+.mentor-row-highlight td {
+  animation: mentor-highlight-fade 3s ease-out forwards;
+}

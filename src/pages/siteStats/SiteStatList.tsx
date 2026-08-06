@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Table, Button, Modal, Form, Input, Space, message, Popconfirm, Typography } from 'antd';
+import { Table, Button, Modal, Form, Input, Space, message, Popconfirm, Typography, Tooltip } from 'antd';
+import type { TableColumnsType } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { getSiteStats, createSiteStat, updateSiteStat, deleteSiteStat, type SiteStat } from '../../api/siteStats';
 import { useAuth } from '../../hooks/useAuth';
@@ -40,7 +41,7 @@ export default function SiteStatList() {
     catch { message.error('删除失败'); }
   };
 
-  const columns = [
+  const columns: TableColumnsType<SiteStat> = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
     { title: '标签', dataIndex: 'label', key: 'label' },
     { title: '数值', dataIndex: 'value', key: 'value', width: 120 },
@@ -49,12 +50,16 @@ export default function SiteStatList() {
 
   if (isOperatorOrAdmin) {
     columns.push({
-      title: '操作', key: 'actions', width: 120,
+      title: '操作', key: 'actions', width: 100,
       render: (_: unknown, record: SiteStat) => (
-        <Space>
-          <Button type="link" icon={<EditOutlined />} onClick={() => openEdit(record)} />
+        <Space size={0}>
+          <Tooltip title="编辑">
+            <Button type="link" icon={<EditOutlined />} onClick={() => openEdit(record)} />
+          </Tooltip>
           <Popconfirm title="确认删除？" onConfirm={() => handleDelete(record.id)}>
-            <Button type="link" danger icon={<DeleteOutlined />} />
+            <Tooltip title="删除">
+              <Button type="link" danger icon={<DeleteOutlined />} />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Tabs, Table, Button, Modal, Form, Input, Space, message, Popconfirm, Typography } from 'antd';
+import { Tabs, Table, Button, Modal, Form, Input, Space, message, Popconfirm, Typography, Tooltip } from 'antd';
+import type { TableColumnsType } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import {
   getServiceCategories, createServiceCategory, updateServiceCategory, deleteServiceCategory,
@@ -7,7 +8,7 @@ import {
   type ServiceCategory, type ServiceStage,
 } from '../../api/services';
 import { useAuth } from '../../hooks/useAuth';
-import JsonEditor from '../../components/JsonEditor';
+import JsonEditor, { SubServiceListEditor } from '../../components/JsonEditor';
 
 const { Title } = Typography;
 
@@ -45,23 +46,27 @@ function CategoryPanel() {
     catch { message.error('删除失败'); }
   };
 
-  const columns = [
+  const columns: TableColumnsType<ServiceCategory> = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 100 },
     { title: '名称', dataIndex: 'name', key: 'name' },
     { title: '描述', dataIndex: 'description', key: 'description', ellipsis: true },
-    { title: '子服务', dataIndex: 'sub_services', key: 'sub_services',
+    { title: '子服务', dataIndex: 'subServices', key: 'sub_services',
       render: (v: Record<string, unknown>[]) => v?.length ?? 0,
     },
   ];
 
   if (isOperatorOrAdmin) {
     columns.push({
-      title: '操作', key: 'actions', width: 120,
+      title: '操作', key: 'actions', width: 100,
       render: (_: unknown, record: ServiceCategory) => (
-        <Space>
-          <Button type="link" icon={<EditOutlined />} onClick={() => openEdit(record)} />
+        <Space size={0}>
+          <Tooltip title="编辑">
+            <Button type="link" icon={<EditOutlined />} onClick={() => openEdit(record)} />
+          </Tooltip>
           <Popconfirm title="确认删除？" onConfirm={() => handleDelete(record.id)}>
-            <Button type="link" danger icon={<DeleteOutlined />} />
+            <Tooltip title="删除">
+              <Button type="link" danger icon={<DeleteOutlined />} />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),
@@ -81,8 +86,8 @@ function CategoryPanel() {
           <Form.Item name="id" label="ID (标识)" rules={[{ required: true }]}><Input disabled={!!editing} /></Form.Item>
           <Form.Item name="name" label="名称" rules={[{ required: true }]}><Input /></Form.Item>
           <Form.Item name="description" label="描述"><Input.TextArea rows={2} /></Form.Item>
-          <Form.Item name="sub_services" label="子服务 (JSON)">
-            <JsonEditor keyLabel="名称" valueLabel="价格/描述" />
+          <Form.Item name="subServices" label="子服务">
+            <SubServiceListEditor />
           </Form.Item>
         </Form>
       </Modal>
@@ -124,7 +129,7 @@ function StagePanel() {
     catch { message.error('删除失败'); }
   };
 
-  const columns = [
+  const columns: TableColumnsType<ServiceStage> = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
     { title: '标题', dataIndex: 'title', key: 'title' },
     { title: '详情', dataIndex: 'details', key: 'details',
@@ -134,12 +139,16 @@ function StagePanel() {
 
   if (isOperatorOrAdmin) {
     columns.push({
-      title: '操作', key: 'actions', width: 120,
+      title: '操作', key: 'actions', width: 100,
       render: (_: unknown, record: ServiceStage) => (
-        <Space>
-          <Button type="link" icon={<EditOutlined />} onClick={() => openEdit(record)} />
+        <Space size={0}>
+          <Tooltip title="编辑">
+            <Button type="link" icon={<EditOutlined />} onClick={() => openEdit(record)} />
+          </Tooltip>
           <Popconfirm title="确认删除？" onConfirm={() => handleDelete(record.id)}>
-            <Button type="link" danger icon={<DeleteOutlined />} />
+            <Tooltip title="删除">
+              <Button type="link" danger icon={<DeleteOutlined />} />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),

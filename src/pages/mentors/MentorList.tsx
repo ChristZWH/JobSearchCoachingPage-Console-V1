@@ -1,7 +1,8 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Table, Button, Space, Input, message, Popconfirm, Typography, Tag, Avatar, Tooltip } from 'antd';
+import type { TableColumnsType } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getMentors, deleteMentor, type Mentor } from '../../api/mentors';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -13,8 +14,20 @@ export default function MentorList() {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const highlightId = searchParams.get('new');
   const { isOperatorOrAdmin } = useAuth();
   const navigate = useNavigate();
+
+  // Clear highlight after 3 seconds
+  useEffect(() => {
+    if (highlightId) {
+      const timer = setTimeout(() => {
+        setSearchParams({}, { replace: true });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightId, setSearchParams]);
 
   const load = useCallback(async (p: number = page, s: string = search) => {
     setLoading(true);
@@ -32,20 +45,23 @@ export default function MentorList() {
     catch { message.error('删除失败'); }
   };
 
-  const columns = [
+  const columns: TableColumnsType<Mentor> = [
     {
       title: '头像', dataIndex: 'avatar', key: 'avatar', width: 60,
       render: (v: string) => <Avatar src={v} size="small" />,
     },
-    { title: '姓名', dataIndex: 'name', key: 'name', width: 120 },
-    { title: '职位', dataIndex: 'title', key: 'title', width: 150 },
-    { title: '公司', dataIndex: 'company', key: 'company', width: 140 },
-    { title: '简介', dataIndex: 'intro', key: 'intro', ellipsis: true },
-    { title: '语言', dataIndex: 'languages', key: 'languages', width: 150,
-      render: (v: string[]) => (Array.isArray(v) ? v.join(', ') : ''),
+    { title: '姓名', dataIndex: 'name', key: 'name', width: 100 },
+    { title: '职位', dataIndex: 'title', key: 'title', width: 130, ellipsis: true },
+    { title: '公司', dataIndex: 'company', key: 'company', width: 120 },
+    { title: '部门', dataIndex: 'department', key: 'department', width: 100 },
+    { title: '领域', dataIndex: 'category', key: 'category', width: 80,
+      render: (v: string) => v ? <Tag>{v}</Tag> : null,
     },
-    { title: '技能', dataIndex: 'key_skills', key: 'key_skills', width: 180,
-      render: (v: string[]) => (Array.isArray(v) ? v.slice(0, 3).map((s: string) => <Tag key={s}>{s}</Tag>) : ''),
+    { title: '行业', dataIndex: 'industry', key: 'industry', width: 100, ellipsis: true },
+    { title: '地区', dataIndex: 'region', key: 'region', width: 80 },
+    { title: '经验(年)', dataIndex: 'experience', key: 'experience', width: 80 },
+    { title: '推荐', dataIndex: 'featured', key: 'featured', width: 70,
+      render: (v: boolean) => v ? <Tag color="gold">是</Tag> : null,
     },
   ];
 
@@ -83,6 +99,11 @@ export default function MentorList() {
         dataSource={data} columns={columns} rowKey="id" loading={loading}
         pagination={{ current: page, total, pageSize: 20, onChange: (p) => { setPage(p); load(p); } }}
         scroll={{ x: 1100 }}
+        rowClassName={(record) =>
+          highlightId && String(record.id) === highlightId
+            ? 'mentor-row-highlight'
+            : ''
+        }
       />
     </>
   );

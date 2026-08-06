@@ -48,30 +48,48 @@ export default function CaseForm() {
       extra={<Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/cases')}>返回</Button>}
     >
       <Form form={form} layout="vertical" onFinish={onFinish} style={{ maxWidth: 900 }}>
-        <Form.Item name="title" label="标题" rules={[{ required: true }]}>
-          <Input />
-        </Form.Item>
-        <Form.Item name="category" label="分类" rules={[{ required: true }]}>
-          <Select options={[
-            { label: '职业转型', value: 'Career Change' },
-            { label: '简历', value: 'Resume' },
-            { label: '面试', value: 'Interview' },
-            { label: '人脉拓展', value: 'Networking' },
-            { label: '薪资谈判', value: 'Negotiation' },
-            { label: '综合', value: 'General' },
-          ]} />
+        <Space size="middle">
+          <Form.Item name="title" label="标题" rules={[{ required: true }]}>
+            <Input style={{ width: 280 }} />
+          </Form.Item>
+          <Form.Item name="category" label="分类" rules={[{ required: true }]}>
+            <Select style={{ width: 160 }} options={[
+              { label: '金融', value: 'finance' }, { label: '咨询', value: 'consulting' },
+              { label: '科技', value: 'tech' }, { label: '综合', value: 'general' },
+            ]} />
+          </Form.Item>
+          <Form.Item name="industry" label="行业">
+            <Input style={{ width: 200 }} />
+          </Form.Item>
+          <Form.Item name="company" label="目标公司">
+            <Input style={{ width: 200 }} />
+          </Form.Item>
+        </Space>
+        <Space size="middle">
+          <Form.Item name="studentName" label="学员姓名">
+            <Input style={{ width: 160 }} />
+          </Form.Item>
+          <Form.Item name="result" label="成果">
+            <Input style={{ width: 300 }} placeholder="e.g. 获得 Goldman Sachs Offer" />
+          </Form.Item>
+          <Form.Item name="image" label="展示图URL">
+            <Input style={{ width: 280 }} placeholder="https://..." />
+          </Form.Item>
+        </Space>
+        <Form.Item name="description" label="简介">
+          <TextArea rows={2} placeholder="案例简要描述..." />
         </Form.Item>
         <Form.Item name="content" label="内容" rules={[{ required: true }]}>
           <TextArea rows={8} placeholder="案例主要内容..." />
         </Form.Item>
         <Form.Item name="challenge" label="挑战">
-          <TextArea rows={4} placeholder="学员面临的挑战是什么？" />
+          <TextArea rows={3} placeholder="学员面临的挑战是什么？" />
         </Form.Item>
         <Form.Item name="strategy" label="策略">
-          <TextArea rows={4} placeholder="采取了什么策略？" />
+          <TextArea rows={3} placeholder="采取了什么策略？" />
         </Form.Item>
         <Form.Item name="outcome" label="结果">
-          <TextArea rows={4} placeholder="结果如何？" />
+          <TextArea rows={3} placeholder="结果如何？" />
         </Form.Item>
         <Form.Item>
           <Space>

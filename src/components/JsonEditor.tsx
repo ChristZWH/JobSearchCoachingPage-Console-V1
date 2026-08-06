@@ -136,3 +136,132 @@ export function StringArrayEditor({
     </div>
   );
 }
+
+// ═══════════════════════════════════════════════════════════
+// Structured editors — admin-friendly forms for complex JSON
+// ═══════════════════════════════════════════════════════════
+
+/** Review editor: name + content pairs */
+export function ReviewListEditor({
+  value = [],
+  onChange,
+}: {
+  value?: { name?: string; content?: string }[];
+  onChange?: (v: { name?: string; content?: string }[]) => void;
+}) {
+  const handleAdd = () => onChange?.([...value, { name: '', content: '' }]);
+  const handleRemove = (i: number) => onChange?.(value.filter((_, idx) => idx !== i));
+
+  return (
+    <div>
+      {value.map((item, i) => (
+        <Space key={i} style={{ display: 'flex', marginBottom: 8 }} align="start">
+          <Input
+            placeholder="评价人姓名"
+            value={item.name || ''}
+            onChange={(e) => {
+              const next = [...value]; next[i] = { ...next[i], name: e.target.value }; onChange?.(next);
+            }}
+            style={{ width: 140 }}
+          />
+          <Input
+            placeholder="评价内容"
+            value={item.content || ''}
+            onChange={(e) => {
+              const next = [...value]; next[i] = { ...next[i], content: e.target.value }; onChange?.(next);
+            }}
+            style={{ width: 320 }}
+          />
+          <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleRemove(i)} />
+        </Space>
+      ))}
+      <Button type="dashed" onClick={handleAdd} icon={<PlusOutlined />}>添加评价</Button>
+    </div>
+  );
+}
+
+/** Teaching clip editor: title + url pairs */
+export function ClipListEditor({
+  value = [],
+  onChange,
+}: {
+  value?: { title?: string; url?: string }[];
+  onChange?: (v: { title?: string; url?: string }[]) => void;
+}) {
+  const handleAdd = () => onChange?.([...value, { title: '', url: '' }]);
+  const handleRemove = (i: number) => onChange?.(value.filter((_, idx) => idx !== i));
+
+  return (
+    <div>
+      {value.map((item, i) => (
+        <Space key={i} style={{ display: 'flex', marginBottom: 8 }} align="start">
+          <Input
+            placeholder="片段标题"
+            value={item.title || ''}
+            onChange={(e) => {
+              const next = [...value]; next[i] = { ...next[i], title: e.target.value }; onChange?.(next);
+            }}
+            style={{ width: 180 }}
+          />
+          <Input
+            placeholder="链接URL"
+            value={item.url || ''}
+            onChange={(e) => {
+              const next = [...value]; next[i] = { ...next[i], url: e.target.value }; onChange?.(next);
+            }}
+            style={{ width: 280 }}
+          />
+          <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleRemove(i)} />
+        </Space>
+      ))}
+      <Button type="dashed" onClick={handleAdd} icon={<PlusOutlined />}>添加片段</Button>
+    </div>
+  );
+}
+
+/** Sub-services editor: name + price + description */
+export function SubServiceListEditor({
+  value = [],
+  onChange,
+}: {
+  value?: { name?: string; price?: string; description?: string }[];
+  onChange?: (v: { name?: string; price?: string; description?: string }[]) => void;
+}) {
+  const handleAdd = () => onChange?.([...value, { name: '', price: '', description: '' }]);
+  const handleRemove = (i: number) => onChange?.(value.filter((_, idx) => idx !== i));
+
+  return (
+    <div>
+      {value.map((item, i) => (
+        <Space key={i} style={{ display: 'flex', marginBottom: 8, alignItems: 'flex-start' }} wrap>
+          <Input
+            placeholder="服务名称"
+            value={item.name || ''}
+            onChange={(e) => {
+              const next = [...value]; next[i] = { ...next[i], name: e.target.value }; onChange?.(next);
+            }}
+            style={{ width: 180 }}
+          />
+          <Input
+            placeholder="价格"
+            value={item.price || ''}
+            onChange={(e) => {
+              const next = [...value]; next[i] = { ...next[i], price: e.target.value }; onChange?.(next);
+            }}
+            style={{ width: 120 }}
+          />
+          <Input
+            placeholder="描述"
+            value={item.description || ''}
+            onChange={(e) => {
+              const next = [...value]; next[i] = { ...next[i], description: e.target.value }; onChange?.(next);
+            }}
+            style={{ width: 220 }}
+          />
+          <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleRemove(i)} />
+        </Space>
+      ))}
+      <Button type="dashed" onClick={handleAdd} icon={<PlusOutlined />}>添加子服务</Button>
+    </div>
+  );
+}

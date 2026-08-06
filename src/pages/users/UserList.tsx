@@ -38,14 +38,14 @@ export default function UserList() {
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 70 },
     { title: '用户名', dataIndex: 'username', key: 'username' },
-    { title: '显示名称', dataIndex: 'display_name', key: 'display_name' },
+    { title: '显示名称', dataIndex: 'displayName', key: 'display_name' },
     { title: '角色', dataIndex: 'role', key: 'role', width: 110,
       render: (v: string) => <Tag color={roleColors[v] || 'default'}>{v?.toUpperCase()}</Tag>,
     },
     { title: '状态', dataIndex: 'status', key: 'status', width: 90,
       render: (v: number) => v === 1 ? <Tag color="green">启用</Tag> : <Tag color="red">禁用</Tag>,
     },
-    { title: '最后登录', dataIndex: 'last_login_at', key: 'last_login_at', width: 170,
+    { title: '最后登录', dataIndex: 'lastLoginAt', key: 'last_login_at', width: 170,
       render: (v: string) => v ? new Date(v).toLocaleString() : '从未',
     },
     {

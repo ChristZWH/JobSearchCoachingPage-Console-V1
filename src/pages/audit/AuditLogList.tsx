@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Table, Tag, Typography, Select, DatePicker, Space, Modal, message, Empty } from 'antd';
+import type { TableColumnsType } from 'antd';
 import dayjs from 'dayjs';
 import { getAuditLogs, type AuditLog, type AuditLogFilters } from '../../api/auditLogs';
 
@@ -33,7 +34,7 @@ export default function AuditLogList() {
 
   useEffect(() => { load(); }, [load]);
 
-  const columns = [
+  const columns: TableColumnsType<AuditLog> = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 70 },
     { title: '用户', dataIndex: 'username', key: 'username', width: 120 },
     { title: '操作', dataIndex: 'action', key: 'action', width: 100,
