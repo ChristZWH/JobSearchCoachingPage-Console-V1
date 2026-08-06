@@ -22,6 +22,8 @@ export interface Mentor {
   reviews: Record<string, unknown>[];
   featured: boolean;
   order: number;
+  tags?: { id: number; name: string; category: string }[];
+  educations?: MentorEducation[];
 }
 
 export interface MentorEducation {

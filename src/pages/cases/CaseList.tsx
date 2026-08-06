@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Table, Button, Space, Input, message, Popconfirm, Typography, Tag, Tooltip } from 'antd';
+import type { TableColumnsType } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { getCases, deleteCase, type StudentCase } from '../../api/cases';
@@ -32,7 +33,7 @@ export default function CaseList() {
     catch { message.error('删除失败'); }
   };
 
-  const columns = [
+  const columns: TableColumnsType<StudentCase> = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 70 },
     { title: '标题', dataIndex: 'title', key: 'title', ellipsis: true },
     { title: '分类', dataIndex: 'category', key: 'category', width: 120,

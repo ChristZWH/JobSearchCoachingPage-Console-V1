@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Form, Input, Button, Card, Space, message, Typography, Spin,
-  Table, Modal, Popconfirm, Divider, Upload, Image, Select, InputNumber, Switch,
+  Table, Modal, Popconfirm, Divider, Upload, Image, Select, InputNumber, Switch, Tooltip,
 } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, ArrowLeftOutlined, UploadOutlined } from '@ant-design/icons';
-import type { UploadProps } from 'antd';
+import type { UploadProps, TableColumnsType } from 'antd';
 import {
   getMentor, createMentor, updateMentor,
   getEducations, createEducation, updateEducation, deleteEducation,
@@ -88,12 +88,26 @@ export default function MentorForm() {
     getTags({ page_size: 200 }).then((res) => setAllTags(res.data)).catch(() => {});
   }, []);
 
+  // Build tag options for Select
+  const tagOptions = useMemo(() => {
+    const grouped: Record<string, { label: string; value: number }[]> = {};
+    allTags.forEach((t) => {
+      const cat = t.category === 'industry' ? '行业' : t.category === 'company' ? '公司' : t.category === 'department' ? '部门' : t.category === 'school' ? '学校' : t.category;
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push({ label: t.name, value: t.id });
+    });
+    return Object.entries(grouped).map(([group, opts]) => ({ label: group, options: opts }));
+  }, [allTags]);
+
   const loadMentor = async () => {
     if (!isEdit) return;
     setLoading(true);
     try {
       const m = await getMentor(Number(id));
-      form.setFieldsValue(m);
+      form.setFieldsValue({
+        ...m,
+        tags: (m.tags || []).map((t) => t.id),
+      });
       loadEducations();
     } catch { message.error('加载导师信息失败'); }
     finally { setLoading(false); }
@@ -111,12 +125,17 @@ export default function MentorForm() {
 
   const onFinish = async (values: Record<string, unknown>) => {
     setSaving(true);
+    // Convert tag IDs to backend format: [1,2,3] → [{id:1},{id:2},{id:3}]
+    const payload = { ...values };
+    if (Array.isArray(payload.tags)) {
+      payload.tags = (payload.tags as number[]).map((id: number) => ({ id }));
+    }
     try {
       if (isEdit) {
-        await updateMentor(Number(id), values);
+        await updateMentor(Number(id), payload);
         message.success('导师更新成功');
       } else {
-        const created = await createMentor(values);
+        const created = await createMentor(payload);
         message.success('导师创建成功');
         navigate(`/mentors?new=${created.id}`, { replace: true });
         return;
@@ -162,19 +181,23 @@ export default function MentorForm() {
     } catch { message.error('删除教育经历失败'); }
   };
 
-  const eduColumns = [
+  const eduColumns: TableColumnsType<MentorEducation> = [
     { title: '学校', dataIndex: 'schoolName', key: 'schoolName' },
     { title: '国家', dataIndex: 'country', key: 'country', width: 80 },
     { title: '学位', dataIndex: 'degree', key: 'degree' },
     { title: '专业', dataIndex: 'major', key: 'major' },
     { title: '毕业年份', dataIndex: 'graduationYear', key: 'graduationYear', width: 90 },
     {
-      title: '操作', key: 'actions', width: 120,
+      title: '操作', key: 'actions', width: 100,
       render: (_: unknown, record: MentorEducation) => (
-        <Space>
-          <Button type="link" icon={<EditOutlined />} onClick={() => openEditEdu(record)} />
+        <Space size={0}>
+          <Tooltip title="编辑">
+            <Button type="link" icon={<EditOutlined />} onClick={() => openEditEdu(record)} />
+          </Tooltip>
           <Popconfirm title="确认删除？" onConfirm={() => handleEduDelete(record.id)}>
-            <Button type="link" danger icon={<DeleteOutlined />} />
+            <Tooltip title="删除">
+              <Button type="link" danger icon={<DeleteOutlined />} />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),
@@ -271,6 +294,22 @@ export default function MentorForm() {
 
           <Form.Item name="teachingClips" label="教学片段">
             <ClipListEditor />
+          </Form.Item>
+
+          <Divider orientation="left">标签关联</Divider>
+
+          <Form.Item name="tags" label="标签">
+            <Select
+              mode="multiple"
+              allowClear
+              showSearch
+              placeholder="选择已有标签..."
+              options={tagOptions}
+              filterOption={(input, option) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+              style={{ maxWidth: 600 }}
+            />
           </Form.Item>
 
           <Divider orientation="left">显示设置</Divider>

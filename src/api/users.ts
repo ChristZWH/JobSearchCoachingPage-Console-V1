@@ -21,7 +21,7 @@ export async function getUsers(params?: ListParams): Promise<PaginatedResponse<U
 export async function createUser(data: {
   username: string;
   password: string;
-  display_name: string;
+  displayName: string;
   role: string;
 }): Promise<User> {
   const res = await client.post('/admin/users', data);
@@ -31,7 +31,7 @@ export async function createUser(data: {
 export async function updateUser(
   id: number,
   data: {
-    display_name?: string;
+    displayName?: string;
     role?: string;
     password?: string;
     status?: number;

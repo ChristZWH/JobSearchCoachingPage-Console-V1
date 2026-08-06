@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Table, Button, Space, Input, message, Popconfirm, Typography, Tooltip } from 'antd';
+import type { TableColumnsType } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { getInsights, deleteInsight, type IndustryInsight } from '../../api/insights';
@@ -32,7 +33,7 @@ export default function InsightList() {
     catch { message.error('删除失败'); }
   };
 
-  const columns = [
+  const columns: TableColumnsType<IndustryInsight> = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 70 },
     { title: '标题', dataIndex: 'title', key: 'title', ellipsis: true },
     { title: '别名', dataIndex: 'slug', key: 'slug', width: 200 },
