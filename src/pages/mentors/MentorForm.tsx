@@ -2,10 +2,10 @@ import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Form, Input, Button, Card, Space, message, Typography, Spin,
-  Table, Modal, Popconfirm, Divider, Upload, Image, Select, InputNumber, Switch, Tooltip,
+  Table, Modal, Popconfirm, Divider, Select, InputNumber, Switch, Tooltip,
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, ArrowLeftOutlined, UploadOutlined } from '@ant-design/icons';
-import type { UploadProps, TableColumnsType } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import type { TableColumnsType } from 'antd';
 import {
   getMentor, createMentor, updateMentor,
   getEducations, createEducation, updateEducation, deleteEducation,
@@ -14,57 +14,10 @@ import {
 import { getTags, type Tag as TagType } from '../../api/tags';
 import { StringArrayEditor, ReviewListEditor, ClipListEditor } from '../../components/JsonEditor';
 import TagSelect from '../../components/TagSelect';
-import { getAccessToken } from '../../utils/storage';
+import ImageUploadField from '../../components/ImageUploadField';
 
 const { Title } = Typography;
 const { TextArea } = Input;
-
-/** Image upload field — upload file or paste URL, shows preview */
-function ImageUploadField({ value, onChange }: { value?: string; onChange?: (url: string) => void }) {
-  const [urlInput, setUrlInput] = useState(value || '');
-
-  const uploadProps: UploadProps = {
-    name: 'file',
-    action: '/api/admin/upload',
-    headers: { Authorization: `Bearer ${getAccessToken()}` },
-    showUploadList: false,
-    onChange(info) {
-      if (info.file.status === 'done') {
-        const url = info.file.response?.data?.url || info.file.response?.url;
-        if (url) {
-          onChange?.(url);
-          setUrlInput(url);
-          message.success('上传成功');
-        }
-      } else if (info.file.status === 'error') {
-        message.error('上传失败');
-      }
-    },
-  };
-
-  return (
-    <div>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-        {value && (
-          <Image src={value} width={80} height={80} style={{ borderRadius: 8, objectFit: 'cover' }} />
-        )}
-        <Upload {...uploadProps}>
-          <Button icon={<UploadOutlined />}>上传文件</Button>
-        </Upload>
-        <Input
-          style={{ width: 200 }}
-          placeholder="或粘贴URL"
-          value={urlInput}
-          onChange={(e) => {
-            setUrlInput(e.target.value);
-            onChange?.(e.target.value);
-          }}
-          allowClear
-        />
-      </div>
-    </div>
-  );
-}
 
 export default function MentorForm() {
   const { id } = useParams<{ id: string }>();

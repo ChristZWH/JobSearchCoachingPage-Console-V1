@@ -1,51 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Table, Button, Modal, Form, Input, Space, message, Popconfirm, Typography, Upload, Image, Tooltip } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons';
-import type { UploadProps, TableColumnsType } from 'antd';
+import { Table, Button, Modal, Form, Input, Space, message, Popconfirm, Typography, Image, Tooltip } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import type { TableColumnsType } from 'antd';
 import { getCompanyLogos, createCompanyLogo, updateCompanyLogo, deleteCompanyLogo, type CompanyLogo } from '../../api/companies';
 import { useAuth } from '../../hooks/useAuth';
-import { getAccessToken } from '../../utils/storage';
+import ImageUploadField from '../../components/ImageUploadField';
 
 const { Title } = Typography;
-
-function LogoUploadField({ value, onChange }: { value?: string; onChange?: (url: string) => void }) {
-  const [urlInput, setUrlInput] = useState(value || '');
-
-  const uploadProps: UploadProps = {
-    name: 'file',
-    action: '/api/admin/upload',
-    headers: { Authorization: `Bearer ${getAccessToken()}` },
-    showUploadList: false,
-    onChange(info) {
-      if (info.file.status === 'done') {
-        const url = info.file.response?.data?.url || info.file.response?.url;
-        if (url) {
-          onChange?.(url);
-          setUrlInput(url);
-          message.success('上传成功');
-        }
-      } else if (info.file.status === 'error') {
-        message.error('上传失败');
-      }
-    },
-  };
-
-  return (
-    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-      {value && <Image src={value} width={64} height={64} style={{ borderRadius: 6, objectFit: 'contain' }} />}
-      <Upload {...uploadProps}>
-        <Button icon={<UploadOutlined />}>上传</Button>
-      </Upload>
-      <Input
-        style={{ width: 200 }}
-        placeholder="或粘贴URL"
-        value={urlInput}
-        onChange={(e) => { setUrlInput(e.target.value); onChange?.(e.target.value); }}
-        allowClear
-      />
-    </div>
-  );
-}
 
 export default function CompanyList() {
   const [data, setData] = useState<CompanyLogo[]>([]);
@@ -147,7 +108,7 @@ export default function CompanyList() {
             <Input />
           </Form.Item>
           <Form.Item name="logo" label="Logo" rules={[{ required: true }]}>
-            <LogoUploadField />
+            <ImageUploadField previewWidth={64} previewHeight={64} objectFit="contain" uploadText="上传" />
           </Form.Item>
         </Form>
       </Modal>
