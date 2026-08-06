@@ -19,6 +19,12 @@ export default function MentorList() {
   const { isOperatorOrAdmin } = useAuth();
   const navigate = useNavigate();
 
+  // Refs to avoid load() depending on page/search state → prevents double fetch
+  const pageRef = useRef(page);
+  const searchRef = useRef(search);
+  pageRef.current = page;
+  searchRef.current = search;
+
   // Clear highlight after 3 seconds
   useEffect(() => {
     if (highlightId) {
@@ -29,16 +35,19 @@ export default function MentorList() {
     }
   }, [highlightId, setSearchParams]);
 
-  const load = useCallback(async (p: number = page, s: string = search) => {
+  const load = useCallback(async (p?: number, s?: string) => {
+    const pageNum = p ?? pageRef.current;
+    const searchVal = s ?? searchRef.current;
     setLoading(true);
     try {
-      const res = await getMentors({ page: p, page_size: 20, search: s || undefined });
+      const res = await getMentors({ page: pageNum, page_size: 20, search: searchVal || undefined });
       setData(res.data); setTotal(res.total);
     } catch { message.error('加载失败'); }
     finally { setLoading(false); }
-  }, [page, search]);
+  }, []); // stable ref — no state deps needed
 
-  useEffect(() => { load(); }, [load]);
+  // Initial load only
+  useEffect(() => { load(); }, []);
 
   const handleDelete = async (id: number) => {
     try { await deleteMentor(id); message.success('删除成功'); load(); }

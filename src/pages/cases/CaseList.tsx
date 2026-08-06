@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Table, Button, Space, Input, message, Popconfirm, Typography, Tag, Tooltip } from 'antd';
 import type { TableColumnsType } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
@@ -17,16 +17,23 @@ export default function CaseList() {
   const { isOperatorOrAdmin } = useAuth();
   const navigate = useNavigate();
 
-  const load = useCallback(async (p: number = page, s: string = search) => {
+  const pageRef = useRef(page);
+  const searchRef = useRef(search);
+  pageRef.current = page;
+  searchRef.current = search;
+
+  const load = useCallback(async (p?: number, s?: string) => {
+    const pageNum = p ?? pageRef.current;
+    const searchVal = s ?? searchRef.current;
     setLoading(true);
     try {
-      const res = await getCases({ page: p, page_size: 20, search: s || undefined });
+      const res = await getCases({ page: pageNum, page_size: 20, search: searchVal || undefined });
       setData(res.data); setTotal(res.total);
     } catch { message.error('加载失败'); }
     finally { setLoading(false); }
-  }, [page, search]);
+  }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load(); }, []);
 
   const handleDelete = async (id: number) => {
     try { await deleteCase(id); message.success('删除成功'); load(); }
