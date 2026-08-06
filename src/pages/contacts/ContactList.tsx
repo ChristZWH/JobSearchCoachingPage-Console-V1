@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Table, Button, Tag, Space, message, Typography, Modal, Tooltip } from 'antd';
+import type { TableColumnsType } from 'antd';
 import { CheckOutlined, EyeOutlined } from '@ant-design/icons';
 import { getContacts, markContactProcessed, type ContactSubmission } from '../../api/contacts';
 import { useAuth } from '../../hooks/useAuth';
@@ -33,7 +34,7 @@ export default function ContactList() {
     } catch { message.error('处理失败'); }
   };
 
-  const columns = [
+  const columns: TableColumnsType<ContactSubmission> = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 70 },
     { title: '姓名', dataIndex: 'name', key: 'name', width: 120 },
     { title: '邮箱', dataIndex: 'email', key: 'email', width: 200 },

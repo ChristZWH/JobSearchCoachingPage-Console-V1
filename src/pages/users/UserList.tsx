@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Table, Button, Space, Tag, message, Popconfirm, Typography, Tooltip } from 'antd';
+import type { TableColumnsType } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { getUsers, deleteUser, type User } from '../../api/users';
@@ -35,7 +36,7 @@ export default function UserList() {
     catch { message.error('删除用户失败'); }
   };
 
-  const columns = [
+  const columns: TableColumnsType<User> = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 70 },
     { title: '用户名', dataIndex: 'username', key: 'username' },
     { title: '显示名称', dataIndex: 'displayName', key: 'display_name' },
