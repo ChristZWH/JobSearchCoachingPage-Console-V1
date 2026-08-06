@@ -149,11 +149,6 @@ export default function Login() {
             </Form.Item>
           </Form>
 
-          <div style={{ textAlign: 'center', marginTop: 24 }}>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              默认账号: admin / Admin@123
-            </Text>
-          </div>
         </div>
       </div>
     </div>

@@ -52,3 +52,5 @@ Thumbs.db
 
 # Claude Code (local config only)
 .claude/
+problem-to-solve.md
+Review.md

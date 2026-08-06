@@ -9,6 +9,7 @@ export interface ContactSubmission {
   industry: string;
   message: string;
   processed: boolean;
+  createdAt: string;
 }
 
 export async function getContacts(params?: ListParams): Promise<PaginatedResponse<ContactSubmission>> {

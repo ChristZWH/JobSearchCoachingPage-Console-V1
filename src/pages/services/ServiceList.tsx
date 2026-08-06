@@ -48,7 +48,7 @@ function CategoryPanel() {
 
   const columns: TableColumnsType<ServiceCategory> = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 100 },
-    { title: '名称', dataIndex: 'name', key: 'name' },
+    { title: '名称', dataIndex: 'title', key: 'title' },
     { title: '描述', dataIndex: 'description', key: 'description', ellipsis: true },
     { title: '子服务', dataIndex: 'subServices', key: 'sub_services',
       render: (v: Record<string, unknown>[]) => v?.length ?? 0,
@@ -84,7 +84,7 @@ function CategoryPanel() {
       <Modal title={editing ? '编辑分类' : '新增分类'} open={modalOpen} onOk={handleOk} onCancel={() => setModalOpen(false)} width={600} destroyOnClose>
         <Form form={form} layout="vertical">
           <Form.Item name="id" label="ID (标识)" rules={[{ required: true }]}><Input disabled={!!editing} /></Form.Item>
-          <Form.Item name="name" label="名称" rules={[{ required: true }]}><Input /></Form.Item>
+          <Form.Item name="title" label="名称" rules={[{ required: true }]}><Input /></Form.Item>
           <Form.Item name="description" label="描述"><Input.TextArea rows={2} /></Form.Item>
           <Form.Item name="subServices" label="子服务">
             <SubServiceListEditor />
