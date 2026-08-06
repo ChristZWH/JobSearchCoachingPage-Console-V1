@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Table, Button, Space, Input, message, Popconfirm, Typography } from 'antd';
+import { Table, Button, Space, Input, message, Popconfirm, Typography, Tooltip } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { getInsights, deleteInsight, type IndustryInsight } from '../../api/insights';
@@ -43,12 +43,16 @@ export default function InsightList() {
 
   if (isOperatorOrAdmin) {
     columns.push({
-      title: '操作', key: 'actions', width: 140,
+      title: '操作', key: 'actions', width: 100,
       render: (_: unknown, record: IndustryInsight) => (
-        <Space>
-          <Button type="link" icon={<EditOutlined />} onClick={() => navigate(`/insights/${record.id}/edit`)}>编辑</Button>
+        <Space size={0}>
+          <Tooltip title="编辑">
+            <Button type="link" icon={<EditOutlined />} onClick={() => navigate(`/insights/${record.id}/edit`)} />
+          </Tooltip>
           <Popconfirm title="确认删除？" onConfirm={() => handleDelete(record.id)}>
-            <Button type="link" danger icon={<DeleteOutlined />}>删除</Button>
+            <Tooltip title="删除">
+              <Button type="link" danger icon={<DeleteOutlined />} />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),

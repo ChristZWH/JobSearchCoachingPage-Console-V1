@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Table, Tag, Typography, Select, DatePicker, Space, Modal, message } from 'antd';
+import { Table, Tag, Typography, Select, DatePicker, Space, Modal, message, Empty } from 'antd';
 import dayjs from 'dayjs';
 import { getAuditLogs, type AuditLog, type AuditLogFilters } from '../../api/auditLogs';
 
@@ -109,6 +109,8 @@ export default function AuditLogList() {
       <Table
         dataSource={data} columns={columns} rowKey="id" loading={loading}
         pagination={{ current: page, total, pageSize: 20, onChange: (p) => { setPage(p); load(p); } }}
+        scroll={{ x: 920 }}
+        locale={{ emptyText: <Empty description="暂无操作记录" /> }}
       />
 
       <Modal

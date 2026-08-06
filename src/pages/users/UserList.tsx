@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Table, Button, Space, Tag, message, Popconfirm, Typography } from 'antd';
+import { Table, Button, Space, Tag, message, Popconfirm, Typography, Tooltip } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { getUsers, deleteUser, type User } from '../../api/users';
@@ -49,12 +49,16 @@ export default function UserList() {
       render: (v: string) => v ? new Date(v).toLocaleString() : '从未',
     },
     {
-      title: '操作', key: 'actions', width: 140,
+      title: '操作', key: 'actions', width: 100,
       render: (_: unknown, record: User) => (
-        <Space>
-          <Button type="link" icon={<EditOutlined />} onClick={() => navigate(`/users/${record.id}/edit`)}>编辑</Button>
+        <Space size={0}>
+          <Tooltip title="编辑">
+            <Button type="link" icon={<EditOutlined />} onClick={() => navigate(`/users/${record.id}/edit`)} />
+          </Tooltip>
           <Popconfirm title="删除/禁用该用户？" onConfirm={() => handleDelete(record.id)}>
-            <Button type="link" danger icon={<DeleteOutlined />}>删除</Button>
+            <Tooltip title="删除">
+              <Button type="link" danger icon={<DeleteOutlined />} />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),

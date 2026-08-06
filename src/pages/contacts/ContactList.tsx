@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Table, Button, Tag, Space, message, Typography, Modal } from 'antd';
+import { Table, Button, Tag, Space, message, Typography, Modal, Tooltip } from 'antd';
 import { CheckOutlined, EyeOutlined } from '@ant-design/icons';
 import { getContacts, markContactProcessed, type ContactSubmission } from '../../api/contacts';
 import { useAuth } from '../../hooks/useAuth';
@@ -45,12 +45,16 @@ export default function ContactList() {
       render: (v: string) => v ? new Date(v).toLocaleString() : '-',
     },
     {
-      title: '操作', key: 'actions', width: 140,
+      title: '操作', key: 'actions', width: 100,
       render: (_: unknown, record: ContactSubmission) => (
-        <Space>
-          <Button type="link" icon={<EyeOutlined />} onClick={() => setViewing(record)}>查看</Button>
+        <Space size={0}>
+          <Tooltip title="查看详情">
+            <Button type="link" icon={<EyeOutlined />} onClick={() => setViewing(record)} />
+          </Tooltip>
           {isOperatorOrAdmin && !record.processed && (
-            <Button type="link" icon={<CheckOutlined />} onClick={() => handleProcess(record.id)}>处理</Button>
+            <Tooltip title="标记已处理">
+              <Button type="link" icon={<CheckOutlined />} onClick={() => handleProcess(record.id)} />
+            </Tooltip>
           )}
         </Space>
       ),
