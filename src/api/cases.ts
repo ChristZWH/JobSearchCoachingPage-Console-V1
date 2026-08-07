@@ -1,6 +1,6 @@
 import client from './client';
-import type { ListParams, PaginatedResponse } from './mentors';
-import { toPaginated } from './mentors';
+import type { ListParams, PaginatedResponse } from './types';
+import { toPaginated } from './types';
 
 export interface StudentCase {
   id: number;

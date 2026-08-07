@@ -19,11 +19,8 @@ export interface LoginResponse {
 export interface UserInfo {
   id: number;
   username: string;
-  display_name: string;
+  displayName: string;
   role: 'admin' | 'operator' | 'normal';
-  status: number;
-  last_login_at: string;
-  created_at: string;
 }
 
 // Raw response shape from backend (camelCase, wrapped in data)
@@ -65,14 +62,6 @@ export async function refreshToken(token: string): Promise<{ access_token: strin
 
 export async function getMe(): Promise<UserInfo> {
   const res = await client.get('/auth/me');
-  const raw = res.data;
-  return {
-    id: raw.id,
-    username: raw.username,
-    display_name: raw.displayName ?? raw.display_name,
-    role: raw.role,
-    status: raw.status,
-    last_login_at: raw.lastLoginAt ?? raw.last_login_at,
-    created_at: raw.createdAt ?? raw.created_at,
-  };
+  // Backend returns camelCase via gin.H{ displayName, ... }
+  return res.data as UserInfo;
 }

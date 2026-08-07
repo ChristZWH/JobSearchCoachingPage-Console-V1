@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const u: StoredUser = {
             id: info.id,
             username: info.username,
-            displayName: info.display_name,
+            displayName: info.displayName,
             role: info.role,
           };
           setUser(u);

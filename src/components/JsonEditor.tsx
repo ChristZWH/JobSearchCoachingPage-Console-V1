@@ -1,5 +1,6 @@
 import { Button, Input, Space } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import type { TeachingClip, Review } from '../api/mentors';
 
 interface JsonEditorProps {
   value?: Record<string, string>[];
@@ -146,8 +147,8 @@ export function ReviewListEditor({
   value = [],
   onChange,
 }: {
-  value?: { name?: string; content?: string }[];
-  onChange?: (v: { name?: string; content?: string }[]) => void;
+  value?: Review[];
+  onChange?: (v: Review[]) => void;
 }) {
   const handleAdd = () => onChange?.([...value, { name: '', content: '' }]);
   const handleRemove = (i: number) => onChange?.(value.filter((_, idx) => idx !== i));
@@ -185,8 +186,8 @@ export function ClipListEditor({
   value = [],
   onChange,
 }: {
-  value?: { title?: string; url?: string }[];
-  onChange?: (v: { title?: string; url?: string }[]) => void;
+  value?: TeachingClip[];
+  onChange?: (v: TeachingClip[]) => void;
 }) {
   const handleAdd = () => onChange?.([...value, { title: '', url: '' }]);
   const handleRemove = (i: number) => onChange?.(value.filter((_, idx) => idx !== i));
