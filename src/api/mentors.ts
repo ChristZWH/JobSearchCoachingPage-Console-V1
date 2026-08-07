@@ -82,7 +82,7 @@ export async function deleteMentor(id: number): Promise<void> {
 
 // Education CRUD
 export async function getEducations(mentorId: number): Promise<MentorEducation[]> {
-  const res = await client.get(`/mentors/${mentorId}/educations`);
+  const res = await client.get(`/admin/mentors/${mentorId}/educations`);
   return res.data;
 }
 

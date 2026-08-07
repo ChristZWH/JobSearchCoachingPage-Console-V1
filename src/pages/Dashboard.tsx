@@ -10,6 +10,7 @@ import {
 import { getMentors } from '../api/mentors';
 import { getCases } from '../api/cases';
 import { getInsights } from '../api/insights';
+import { getContacts } from '../api/contacts';
 import { getAuditLogs, type AuditLog } from '../api/auditLogs';
 
 const { Title } = Typography;
@@ -63,17 +64,18 @@ export default function Dashboard() {
   useEffect(() => {
     async function load() {
       try {
-        const [mentors, cases, insights, logs] = await Promise.all([
+        const [mentors, cases, insights, contacts, logs] = await Promise.all([
           getMentors({ page_size: 1 }),
           getCases({ page_size: 1 }),
           getInsights({ page_size: 1 }),
+          getContacts({ page_size: 1 }),
           getAuditLogs({ page_size: 10, page: 1 }),
         ]);
         setCounts({
           mentors: mentors.total,
           cases: cases.total,
           insights: insights.total,
-          contacts: 0,
+          contacts: contacts.total,
         });
         setRecentLogs(logs.data || []);
       } catch {

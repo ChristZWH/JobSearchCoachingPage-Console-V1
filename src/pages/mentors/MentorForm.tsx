@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Form, Input, Button, Card, Space, message, Typography, Spin,
@@ -52,8 +52,8 @@ export default function MentorForm() {
     return Object.entries(grouped).map(([group, opts]) => ({ label: group, options: opts }));
   }, [allTags]);
 
-  const loadMentor = async () => {
-    if (!isEdit) return;
+  const loadMentor = useCallback(async () => {
+    if (!id) return;
     setLoading(true);
     try {
       const m = await getMentor(Number(id));
@@ -64,17 +64,17 @@ export default function MentorForm() {
       loadEducations();
     } catch { message.error('加载导师信息失败'); }
     finally { setLoading(false); }
-  };
+  }, [id, form]);
 
-  const loadEducations = async () => {
+  const loadEducations = useCallback(async () => {
     if (!id) return;
     setEduLoading(true);
     try { const list = await getEducations(Number(id)); setEducations(list); }
     catch { message.error('加载教育经历失败'); }
     finally { setEduLoading(false); }
-  };
+  }, [id]);
 
-  useEffect(() => { loadMentor(); }, [id, isEdit]);
+  useEffect(() => { loadMentor(); }, [loadMentor]);
 
   const onFinish = async (values: Record<string, unknown>) => {
     setSaving(true);
@@ -172,7 +172,7 @@ export default function MentorForm() {
               <Input style={{ width: 180 }} />
             </Form.Item>
             <Form.Item name="title" label="职位" rules={[{ required: true }]}>
-              <TagSelect category="department" placeholder="选择或输入职位..." style={{ width: 200 }} />
+              <Input style={{ width: 200 }} placeholder="例如：Managing Director" />
             </Form.Item>
             <Form.Item name="company" label="公司" rules={[{ required: true }]}>
               <TagSelect category="company" placeholder="选择或输入公司..." style={{ width: 180 }} />
