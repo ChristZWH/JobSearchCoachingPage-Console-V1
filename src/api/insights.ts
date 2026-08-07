@@ -20,7 +20,7 @@ export async function getInsights(params?: ListParams): Promise<PaginatedRespons
 }
 
 export async function getInsight(id: number): Promise<IndustryInsight> {
-  const res = await client.get(`/insights/${id}`);
+  const res = await client.get(`/admin/insights/${id}`);
   return res.data;
 }
 
