@@ -1,4 +1,5 @@
 import client from './client';
+import { toPaginated } from './types';
 export { toPaginated } from './types';
 export type { ListParams, PaginatedResponse } from './types';
 

@@ -42,7 +42,9 @@ export default function MentorList() {
     try {
       const res = await getMentors({ page: pageNum, page_size: 20, search: searchVal || undefined });
       setData(res.data); setTotal(res.total);
-    } catch { message.error('加载失败'); }
+    } catch (err) {
+      message.error('加载失败');
+    }
     finally { setLoading(false); }
   }, []); // stable ref — no state deps needed
 
