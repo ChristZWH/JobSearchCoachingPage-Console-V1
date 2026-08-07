@@ -21,29 +21,32 @@ export default function JsonEditor({
   valueLabel = 'Value',
   readonly = false,
 }: JsonEditorProps) {
+  // Normalise null (from backend NULL JSON fields) to empty array
+  const list: Record<string, string>[] = value ?? [];
+
   const handleAdd = () => {
-    const next = [...value, { key: '', value: '' }];
+    const next = [...list, { key: '', value: '' }];
     onChange?.(next);
   };
 
   const handleRemove = (index: number) => {
-    const next = value.filter((_, i) => i !== index);
+    const next = list.filter((_, i) => i !== index);
     onChange?.(next);
   };
 
   const handleChange = (index: number, field: 'key' | 'value', val: string) => {
-    const next = [...value];
+    const next = [...list];
     next[index] = { ...next[index], [field]: val };
     onChange?.(next);
   };
 
-  if (readonly && (!value || value.length === 0)) {
+  if (readonly && list.length === 0) {
     return <span style={{ color: '#999' }}>—</span>;
   }
 
   return (
     <div>
-      {value.map((item, index) => (
+      {list.map((item, index) => (
         <Space key={index} style={{ display: 'flex', marginBottom: 8 }} align="start">
           <Input
             placeholder={keyLabel}
@@ -90,27 +93,30 @@ export function StringArrayEditor({
   placeholder?: string;
   readonly?: boolean;
 }) {
+  // Normalise null (from backend NULL JSON fields) to empty array
+  const list: string[] = value ?? [];
+
   const handleAdd = () => {
-    onChange?.([...value, '']);
+    onChange?.([...list, '']);
   };
 
   const handleRemove = (index: number) => {
-    onChange?.(value.filter((_, i) => i !== index));
+    onChange?.(list.filter((_, i) => i !== index));
   };
 
   const handleChange = (index: number, val: string) => {
-    const next = [...value];
+    const next = [...list];
     next[index] = val;
     onChange?.(next);
   };
 
-  if (readonly && (!value || value.length === 0)) {
+  if (readonly && list.length === 0) {
     return <span style={{ color: '#999' }}>—</span>;
   }
 
   return (
     <div>
-      {value.map((item, index) => (
+      {list.map((item, index) => (
         <Space key={index} style={{ display: 'flex', marginBottom: 8 }} align="start">
           <Input
             placeholder={placeholder}
@@ -150,18 +156,21 @@ export function ReviewListEditor({
   value?: Review[];
   onChange?: (v: Review[]) => void;
 }) {
-  const handleAdd = () => onChange?.([...value, { name: '', content: '' }]);
-  const handleRemove = (i: number) => onChange?.(value.filter((_, idx) => idx !== i));
+  // Normalise null (from backend NULL JSON fields) to empty array
+  const list: Review[] = value ?? [];
+
+  const handleAdd = () => onChange?.([...list, { name: '', content: '' }]);
+  const handleRemove = (i: number) => onChange?.(list.filter((_, idx) => idx !== i));
 
   return (
     <div>
-      {value.map((item, i) => (
+      {list.map((item, i) => (
         <Space key={i} style={{ display: 'flex', marginBottom: 8 }} align="start">
           <Input
             placeholder="评价人姓名"
             value={item.name || ''}
             onChange={(e) => {
-              const next = [...value]; next[i] = { ...next[i], name: e.target.value }; onChange?.(next);
+              const next = [...list]; next[i] = { ...next[i], name: e.target.value }; onChange?.(next);
             }}
             style={{ width: 140 }}
           />
@@ -169,7 +178,7 @@ export function ReviewListEditor({
             placeholder="评价内容"
             value={item.content || ''}
             onChange={(e) => {
-              const next = [...value]; next[i] = { ...next[i], content: e.target.value }; onChange?.(next);
+              const next = [...list]; next[i] = { ...next[i], content: e.target.value }; onChange?.(next);
             }}
             style={{ width: 320 }}
           />
@@ -189,18 +198,21 @@ export function ClipListEditor({
   value?: TeachingClip[];
   onChange?: (v: TeachingClip[]) => void;
 }) {
-  const handleAdd = () => onChange?.([...value, { title: '', url: '' }]);
-  const handleRemove = (i: number) => onChange?.(value.filter((_, idx) => idx !== i));
+  // Normalise null (from backend NULL JSON fields) to empty array
+  const list: TeachingClip[] = value ?? [];
+
+  const handleAdd = () => onChange?.([...list, { title: '', url: '' }]);
+  const handleRemove = (i: number) => onChange?.(list.filter((_, idx) => idx !== i));
 
   return (
     <div>
-      {value.map((item, i) => (
+      {list.map((item, i) => (
         <Space key={i} style={{ display: 'flex', marginBottom: 8 }} align="start">
           <Input
             placeholder="片段标题"
             value={item.title || ''}
             onChange={(e) => {
-              const next = [...value]; next[i] = { ...next[i], title: e.target.value }; onChange?.(next);
+              const next = [...list]; next[i] = { ...next[i], title: e.target.value }; onChange?.(next);
             }}
             style={{ width: 180 }}
           />
@@ -208,7 +220,7 @@ export function ClipListEditor({
             placeholder="链接URL"
             value={item.url || ''}
             onChange={(e) => {
-              const next = [...value]; next[i] = { ...next[i], url: e.target.value }; onChange?.(next);
+              const next = [...list]; next[i] = { ...next[i], url: e.target.value }; onChange?.(next);
             }}
             style={{ width: 280 }}
           />
@@ -228,18 +240,22 @@ export function SubServiceListEditor({
   value?: { name?: string; price?: string; description?: string }[];
   onChange?: (v: { name?: string; price?: string; description?: string }[]) => void;
 }) {
-  const handleAdd = () => onChange?.([...value, { name: '', price: '', description: '' }]);
-  const handleRemove = (i: number) => onChange?.(value.filter((_, idx) => idx !== i));
+  // Normalise null (from backend NULL JSON fields) to empty array
+  type SubService = { name?: string; price?: string; description?: string };
+  const list: SubService[] = value ?? [];
+
+  const handleAdd = () => onChange?.([...list, { name: '', price: '', description: '' }]);
+  const handleRemove = (i: number) => onChange?.(list.filter((_, idx) => idx !== i));
 
   return (
     <div>
-      {value.map((item, i) => (
+      {list.map((item, i) => (
         <Space key={i} style={{ display: 'flex', marginBottom: 8, alignItems: 'flex-start' }} wrap>
           <Input
             placeholder="服务名称"
             value={item.name || ''}
             onChange={(e) => {
-              const next = [...value]; next[i] = { ...next[i], name: e.target.value }; onChange?.(next);
+              const next = [...list]; next[i] = { ...next[i], name: e.target.value }; onChange?.(next);
             }}
             style={{ width: 180 }}
           />
@@ -247,7 +263,7 @@ export function SubServiceListEditor({
             placeholder="价格"
             value={item.price || ''}
             onChange={(e) => {
-              const next = [...value]; next[i] = { ...next[i], price: e.target.value }; onChange?.(next);
+              const next = [...list]; next[i] = { ...next[i], price: e.target.value }; onChange?.(next);
             }}
             style={{ width: 120 }}
           />
@@ -255,7 +271,7 @@ export function SubServiceListEditor({
             placeholder="描述"
             value={item.description || ''}
             onChange={(e) => {
-              const next = [...value]; next[i] = { ...next[i], description: e.target.value }; onChange?.(next);
+              const next = [...list]; next[i] = { ...next[i], description: e.target.value }; onChange?.(next);
             }}
             style={{ width: 220 }}
           />

@@ -52,6 +52,14 @@ export default function MentorForm() {
     return Object.entries(grouped).map(([group, opts]) => ({ label: group, options: opts }));
   }, [allTags]);
 
+  const loadEducations = useCallback(async () => {
+    if (!id) return;
+    setEduLoading(true);
+    try { const list = await getEducations(Number(id)); setEducations(list); }
+    catch { message.error('加载教育经历失败'); }
+    finally { setEduLoading(false); }
+  }, [id]);
+
   const loadMentor = useCallback(async () => {
     if (!id) return;
     setLoading(true);
@@ -64,15 +72,7 @@ export default function MentorForm() {
       loadEducations();
     } catch { message.error('加载导师信息失败'); }
     finally { setLoading(false); }
-  }, [id, form]);
-
-  const loadEducations = useCallback(async () => {
-    if (!id) return;
-    setEduLoading(true);
-    try { const list = await getEducations(Number(id)); setEducations(list); }
-    catch { message.error('加载教育经历失败'); }
-    finally { setEduLoading(false); }
-  }, [id]);
+  }, [id, form, loadEducations]);
 
   useEffect(() => { loadMentor(); }, [loadMentor]);
 
