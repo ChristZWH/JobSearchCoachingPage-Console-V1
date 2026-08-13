@@ -473,5 +473,171 @@ Phase 6 (联调打磨) → F8 + 全链路测试
 
 ---
 
+## 十一、导师图片上传功能（新增）
+
+> 目标：让 Mentor 表单里的「头像」以及 Company 表单里的「Logo」真正能通过**本地上传图片**实现，前后端打通。
+
+### 11.1 现状（已排查）
+
+| 层 | 现状 |
+|----|------|
+| 前端组件 | [ImageUploadField.tsx](../JobSearchCoachingPage-Console-V1/src/components/ImageUploadField.tsx) 已实现，`POST /api/admin/upload`，字段名 `file`，带 Bearer Token，期望响应 `data.url` |
+| 前端使用处 | `MentorForm`（头像）、`CompanyList`（Logo）均已接入该组件 |
+| 后端 | **完全没有** `/api/admin/upload` 路由，也没有任何静态文件服务（`grep upload/static/multipart` 无结果） |
+| 数据库 | `mentors.avatar` / `company_logos.logo_url` 字段已存在（`varchar(500)`），**无需迁移** |
+| Vite 代理 | 只代理了 `/api`，未代理图片访问路径 `/uploads` |
+
+**结论**：前端 UI 已就绪，缺的是后端上传接口 + 静态文件托管 + 前端图片访问代理。这是一个「补齐后端 + 打通访问链路」的任务，前端 `ImageUploadField` 主体不用重写。
+
+### 11.2 图片路径存在哪里（核心决策）
+
+**文件实体** → 存放于**后端项目**（`JobSearchCoachingPage_BackendSide_v1`）的磁盘目录，**不是**前端 `src/` 目录。路径由环境变量 `UPLOAD_DIR` 配置，**代码不写死路径**：
+
+| 场景 | `UPLOAD_DIR` 取值 | 说明 |
+|------|------------------|------|
+| 本地开发 | `./uploads`（默认，后端项目根目录下） | 零权限零配置，`go run` 直接跑 |
+| 生产部署 | `/srv/maridiancareer/uploads` | 符合 FHS 规范（`/srv` = 本系统对外提供的服务数据），由部署脚本建目录+赋权 |
+
+> ⚠️ 为什么不放前端 `src/`：`src/` 是前端源代码目录，会被 Vite 编译打包；上传的图片是**运行时产生的用户数据**，不属于源代码。图片由后端接收落盘，应放在后端可写目录，再由后端静态路由对外提供访问。可按资源分子目录（`uploads/mentors/`、`uploads/logos/`）便于分类管理。
+>
+> ⚠️ 生产切换到 `/srv` 时需 root 建目录并赋权：`sudo mkdir -p /srv/maridiancareer/uploads && sudo chown -R <运行用户> /srv/maridiancareer`。
+
+**数据库字段**（`mentors.avatar`、`company_logos.logo_url`）→ 存**相对 URL 路径**，形如：
+
+```
+/uploads/2026/08/13/9f2c1a7e3b...jpg
+```
+
+而非绝对路径或 base64。理由：
+
+1. **部署域名/端口可变**：绝对 URL（`http://x.x.x.x:8080/uploads/...`）换环境即失效；相对路径天然可迁移。
+2. **前后端同源访问**：开发时走 Vite 代理，生产时由 Nginx 统一反代 `/uploads` 与 `/api`，相对路径两端都通。
+3. **数据库不膨胀**：存 base64 会让 `avatar` 字段从几十字节暴涨到几十 KB，且破坏缓存；存文件路径只占几十字节。
+4. **可替换 / 可迁移**：换 CDN 或对象存储时，只需把 URL 前缀换成 CDN 域名，`avatar` 字段里的相对路径不用改。
+
+### 11.3 后端修改
+
+#### (1) 配置项 —— [config.go](../JobSearchCoachingPage_BackendSide_v1/config/config.go)
+
+`Config` 结构体新增：
+
+```go
+UploadDir       string // 上传文件存储目录，默认 ./uploads
+MaxUploadSizeMB int64  // 单文件大小上限(MB)，默认 3
+```
+
+`Load()` 中读取：
+
+```go
+UploadDir:       getEnv("UPLOAD_DIR", "./uploads"),
+MaxUploadSizeMB: int64(getEnvInt("MAX_UPLOAD_SIZE_MB", 3)),
+```
+
+#### (2) 环境变量 —— [.env](../JobSearchCoachingPage_BackendSide_v1/.env) 与 `.env.example`
+
+```env
+UPLOAD_DIR=./uploads
+MAX_UPLOAD_SIZE_MB=3
+```
+
+#### (3) 新增上传 Handler —— `internal/handler/upload_handler.go`
+
+```go
+type UploadHandler struct {
+    uploadDir string
+    maxSize   int64 // bytes
+}
+func NewUploadHandler(uploadDir string, maxSizeMB int64) *UploadHandler
+
+// Upload handles POST /api/admin/upload (multipart, field "file")
+func (h *UploadHandler) Upload(c *gin.Context) {
+    // 1. c.FormFile("file") 取文件，失败 → 400
+    // 2. 大小校验：file.Size > maxSize → 413（用 utils.ErrorResponse）
+    // 3. 打开文件，用 http.DetectContentType 读取真实内容判断类型（白名单：image/jpeg、image/png、image/webp、image/gif）
+    // 4. 生成文件名：time.Now().Format("2006/01/02") 子目录 + crypto/rand 随机名 + 原扩展名
+    // 5. os.MkdirAll(uploadDir/YYYY/MM/DD) 后 c.SaveUploadedFile 落盘
+    // 6. 返回 utils.Success(c, gin.H{"url": "/uploads/YYYY/MM/DD/xxx.ext"})
+}
+```
+
+**要点**：
+- 文件名用**服务端生成**（随机 + 日期子目录），**不信任**用户原始文件名，杜绝路径穿越与重名覆盖。
+- 返回的 `url` 是相对路径，与前端 `info.file.response.data.url` 的解析逻辑匹配。
+
+#### (4) 静态文件托管 + 路由注册 —— [main.go](../JobSearchCoachingPage_BackendSide_v1/main.go)
+
+启动时确保目录存在：
+
+```go
+if err := os.MkdirAll(cfg.UploadDir, 0o755); err != nil {
+    log.Fatalf("failed to create upload dir: %v", err)
+}
+```
+
+路由区新增（放在 `api` 分组之外、`r.Use(...)` 之后即可）：
+
+```go
+r.Static("/uploads", cfg.UploadDir)
+```
+
+`adminGroup` 内注册上传接口（复用现有 `AuthRequired` + `Audit` 中间件）：
+
+```go
+uploadH := handler.NewUploadHandler(cfg.UploadDir, cfg.MaxUploadSizeMB)
+// ...
+adminGroup.POST("/upload",
+    middleware.RequireRole(model.RoleAdmin, model.RoleOperator),
+    uploadH.Upload)
+```
+
+> 这样只有 **operator / admin** 能上传，且每次上传自动写入审计日志。
+
+### 11.4 前端修改
+
+#### (1) Vite 代理 —— [vite.config.ts](../JobSearchCoachingPage-Console-V1/vite.config.ts)
+
+`/uploads` 也需要反代到后端，否则 `<Image src="/uploads/...">` 会 404：
+
+```ts
+proxy: {
+  '/api': { target: 'http://localhost:8080', changeOrigin: true, /* 原有 Origin strip 逻辑保留 */ },
+  '/uploads': { target: 'http://localhost:8080', changeOrigin: true },
+}
+```
+
+#### (2) [ImageUploadField.tsx](../JobSearchCoachingPage-Console-V1/src/components/ImageUploadField.tsx) —— 小幅健壮化（可选）
+
+核心已通，只需补两点：
+
+```ts
+// beforeUpload 校验：仅允许 JPG / PNG，且 ≤ 3MB（只做 UX 过滤，真实校验在后端 DetectContentType）
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png'];
+beforeUpload: (file) => {
+  if (!ACCEPTED_TYPES.includes(file.type)) { message.error('只支持 JPG / PNG 图片'); return Upload.LIST_IGNORE; }
+  if (file.size / 1024 / 1024 > 3) { message.error('图片不能超过 3MB'); return Upload.LIST_IGNORE; }
+  return true;
+},
+```
+
+> ⚠️ `file.type` 是浏览器按扩展名推断的，**不可信**（`.exe` 改名 `.jpg` 也能绕过）。前端此处只挡普通误操作，真正的安全校验在后端 `http.DetectContentType`。
+
+其余（`action`、`name: 'file'`、响应解析 `data.url`）保持不变。
+
+### 11.5 注意事项
+
+- **清空头像的坑**：`mentors.avatar` 是 `string`，GORM `Updates()` 会跳过空字符串零值 → 用户在表单里清空头像 URL 时**不会**真正清空数据库。若需要支持，参考 `model.Mentor.Featured` 的既有注释，在 repo.Update 中对 `avatar` 用 `.Select("avatar")` 显式处理（本期可先不做，仅记录）。
+- **生产部署**：Nginx 需同时反代 `/api` 与 `/uploads` 到 8080，并给 `uploads/` 目录写权限。
+- **静态目录写入权限**：后端进程需对 `UPLOAD_DIR` 有读写权限，部署时注意。
+
+### 11.6 验收标准
+
+1. `POST /api/admin/upload` 上传一张图片 → 返回 `{"data":{"url":"/uploads/..."}}`。
+2. 浏览器直接访问返回的 `/uploads/...` 能显示图片。
+3. Mentor 表单上传头像 → 预览显示 → 保存 → 列表 `Avatar` 正常展示。
+4. 非 operator/admin 调用上传接口 → 返回 401/403。
+5. 上传非图片文件或超 3MB → 返回 4xx 且不落盘。
+
+---
+
 *此文档为规划阶段输出，具体实施时可能根据实际情况调整。*  
-*最后更新: 2026-08-05*
+*最后更新: 2026-08-13*

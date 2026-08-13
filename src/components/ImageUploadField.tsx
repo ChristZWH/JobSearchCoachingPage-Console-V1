@@ -39,6 +39,23 @@ export default function ImageUploadField({
     action: '/api/admin/upload',
     headers: { Authorization: `Bearer ${getAccessToken()}` },
     showUploadList: false,
+    beforeUpload: (file) => {
+      // file.type 是浏览器按扩展名推断的（可为空、也不可信），此处只做 UX 过滤；
+      // 真正的安全校验在后端 http.DetectContentType。加扩展名兜底，避免空 type 误拦截。
+      const isJpgPng =
+        file.type === 'image/jpeg' ||
+        file.type === 'image/png' ||
+        /\.(jpe?g|png)$/i.test(file.name || '');
+      if (!isJpgPng) {
+        message.error('只支持 JPG / PNG 图片');
+        return Upload.LIST_IGNORE;
+      }
+      if (file.size / 1024 / 1024 > 3) {
+        message.error('图片不能超过 3MB');
+        return Upload.LIST_IGNORE;
+      }
+      return true;
+    },
     onChange(info) {
       if (info.file.status === 'done') {
         const url = info.file.response?.data?.url || info.file.response?.url;
