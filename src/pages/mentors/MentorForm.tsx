@@ -21,6 +21,26 @@ import ImageUploadField from '../../components/ImageUploadField';
 const { Title } = Typography;
 const { TextArea } = Input;
 
+// 5 个筛选维度字段仅允许英文：这些字段会原样进入官网筛选下拉，
+// 若混入中文，英文站的下拉菜单会直接显示中文内容，故在控制台源头拦截。
+const noChineseRule = (label: string) => ({
+  validator: (_: unknown, value: string | undefined) => {
+    if (!value) return Promise.resolve();
+    // 匹配 CJK 汉字：基本区 U+4E00-U+9FFF、扩展A区 U+3400-U+4DBF、兼容区 U+F900-U+FAFF
+    const hasHan = Array.from(value).some((ch) => {
+      const code = ch.codePointAt(0) ?? 0;
+      return (
+        (code >= 0x3400 && code <= 0x4dbf) ||
+        (code >= 0x4e00 && code <= 0x9fff) ||
+        (code >= 0xf900 && code <= 0xfaff)
+      );
+    });
+    return hasHan
+      ? Promise.reject(new Error(`${label}仅支持英文，请勿输入中文`))
+      : Promise.resolve();
+  },
+});
+
 export default function MentorForm() {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
@@ -64,11 +84,17 @@ export default function MentorForm() {
     getTags({ page_size: 200 }).then((res) => setAllTags(res.data)).catch(() => {});
   }, []);
 
-  // Build tag options for Select
+  // Build tag options for the multi-value "标签关联" field.
+  // Only language / skill / industry tags are multi-valued on a mentor and get
+  // derived by the backend into languages / keySkills / industrySpecialization.
+  // Single-valued dimensions (company / department / school) are edited via their
+  // own TagSelect fields elsewhere, so they are excluded here.
   const tagOptions = useMemo(() => {
+    const MENTOR_TAG_CATEGORIES: TagType['category'][] = ['language', 'skill', 'industry'];
     const grouped: Record<string, { label: string; value: number }[]> = {};
     allTags.forEach((t) => {
-      const cat = t.category === 'industry' ? '行业' : t.category === 'company' ? '公司' : t.category === 'department' ? '部门' : t.category === 'school' ? '学校' : t.category === 'language' ? '语言' : t.category === 'skill' ? '技能' : t.category;
+      if (!MENTOR_TAG_CATEGORIES.includes(t.category)) return;
+      const cat = t.category === 'industry' ? '行业专长' : t.category === 'language' ? '语言' : '技能';
       if (!grouped[cat]) grouped[cat] = [];
       grouped[cat].push({ label: t.name, value: t.id });
     });
@@ -386,54 +412,50 @@ export default function MentorForm() {
         <Form form={form} layout="vertical" onFinish={onFinish} style={{ maxWidth: 900 }}>
           {/* Row 1: 基本信息 */}
           <Space style={{ width: '100%' }} size="middle">
-            <Form.Item name="name" label="姓名" rules={[{ required: true }]}>
+            <Form.Item name="name" label="姓名 (name)" rules={[{ required: true }]}>
               <Input style={{ width: 180 }} />
             </Form.Item>
-            <Form.Item name="title" label="职位" rules={[{ required: true }]}>
+            <Form.Item name="title" label="职位 (title)" rules={[{ required: true }]}>
               <Input style={{ width: 200 }} placeholder="例如：Managing Director" />
             </Form.Item>
-            <Form.Item name="company" label="公司" rules={[{ required: true }]}>
+            <Form.Item name="company" label="公司 (company)" rules={[{ required: true }, noChineseRule('公司')]}>
               <TagSelect category="company" placeholder="选择或输入公司..." style={{ width: 180 }} />
             </Form.Item>
-            <Form.Item name="department" label="部门">
+            <Form.Item name="department" label="部门 (department)" rules={[noChineseRule('部门')]}>
               <TagSelect category="department" placeholder="选择或输入部门..." style={{ width: 160 }} />
             </Form.Item>
           </Space>
 
           {/* Row 2: 分类信息 */}
           <Space style={{ width: '100%' }} size="middle">
-            <Form.Item name="category" label="领域" rules={[{ required: true }]}>
+            <Form.Item name="category" label="领域 (category)" rules={[{ required: true }]}>
               <Select style={{ width: 140 }} options={[
                 { label: '金融', value: 'finance' }, { label: '咨询', value: 'consulting' },
                 { label: '科技', value: 'tech' }, { label: '医疗', value: 'healthcare' },
                 { label: '法律', value: 'legal' }, { label: '其他', value: 'other' },
               ]} />
             </Form.Item>
-            <Form.Item name="region" label="地区">
-              <Select style={{ width: 140 }} options={[
-                { label: '北美', value: 'North America' }, { label: '欧洲', value: 'Europe' },
-                { label: '亚洲', value: 'Asia' }, { label: '大洋洲', value: 'Oceania' },
-                { label: '其他', value: 'Other' },
-              ]} />
+            <Form.Item name="region" label="地区 (region)" rules={[noChineseRule('地区')]}>
+              <TagSelect category="region" placeholder="选择或输入地区..." style={{ width: 160 }} />
             </Form.Item>
-            <Form.Item name="industry" label="行业">
+            <Form.Item name="industry" label="行业 (industry)" rules={[noChineseRule('行业')]}>
               <TagSelect category="industry" placeholder="选择或输入行业..." style={{ width: 180 }} />
             </Form.Item>
-            <Form.Item name="targetRole" label="目标职位">
-              <Input style={{ width: 180 }} />
+            <Form.Item name="targetRole" label="辅导求职职位 (targetRole)" rules={[noChineseRule('辅导求职职位')]}>
+              <TagSelect category="targetRole" placeholder="选择或输入职位..." style={{ width: 180 }} />
             </Form.Item>
-            <Form.Item name="experience" label="经验(年)">
-              <InputNumber style={{ width: 80 }} min={0} max={50} />
+            <Form.Item name="experience" label="经验 (experience)">
+              <InputNumber style={{ width: 110 }} min={0} max={50} addonAfter="年" />
             </Form.Item>
           </Space>
 
           {/* Avatar */}
-          <Form.Item name="avatar" label="头像">
+          <Form.Item name="avatar" label="头像 (avatar)">
             <ImageUploadField />
           </Form.Item>
 
           {/* Bio */}
-          <Form.Item name="shortBio" label="简介" rules={[{ max: 500 }]}>
+          <Form.Item name="shortBio" label="简介 (shortBio)" rules={[{ max: 500 }]}>
             <TextArea rows={2} placeholder="一句话简介，用于卡片展示" />
           </Form.Item>
           <Form.Item name="bio" label="详细介绍 (bio)">
@@ -442,7 +464,7 @@ export default function MentorForm() {
 
           <Divider orientation="left">标签关联</Divider>
 
-          <Form.Item name="tags" label="标签（语言 / 技能 / 行业专长等）" extra="职业背景、教学片段、学员评价在下方独立管理">
+          <Form.Item name="tags" label="语言 / 技能 / 行业专长 (tags)" extra="选择导师掌握的语言、核心技能与行业专长（多选）">
             <Select
               mode="multiple"
               allowClear
@@ -459,10 +481,10 @@ export default function MentorForm() {
           <Divider orientation="left">显示设置</Divider>
 
           <Space size="large">
-            <Form.Item name="featured" label="首页推荐" valuePropName="checked">
+            <Form.Item name="featured" label="首页推荐 (featured)" valuePropName="checked">
               <Switch />
             </Form.Item>
-            <Form.Item name="order" label="排序权重">
+            <Form.Item name="order" label="排序权重 (order)">
               <InputNumber min={0} max={9999} />
             </Form.Item>
           </Space>
@@ -512,20 +534,20 @@ export default function MentorForm() {
         destroyOnClose
       >
         <Form form={eduForm} layout="vertical">
-          <Form.Item name="schoolName" label="学校" rules={[{ required: true }]}>
+          <Form.Item name="schoolName" label="学校 (schoolName)" rules={[{ required: true }]}>
             <TagSelect category="school" placeholder="选择或输入学校..." style={{ width: 260 }} />
           </Form.Item>
           <Space size="middle">
-            <Form.Item name="degree" label="学位" rules={[{ required: true }]}>
+            <Form.Item name="degree" label="学位 (degree)" rules={[{ required: true }]}>
               <Input style={{ width: 180 }} />
             </Form.Item>
-            <Form.Item name="major" label="专业">
+            <Form.Item name="major" label="专业 (major)">
               <Input style={{ width: 180 }} />
             </Form.Item>
-            <Form.Item name="country" label="国家">
+            <Form.Item name="country" label="国家 (country)">
               <Input style={{ width: 120 }} />
             </Form.Item>
-            <Form.Item name="graduationYear" label="毕业年份">
+            <Form.Item name="graduationYear" label="毕业年份 (graduationYear)">
               <InputNumber style={{ width: 100 }} min={1950} max={2030} />
             </Form.Item>
           </Space>
@@ -540,7 +562,7 @@ export default function MentorForm() {
         destroyOnClose
       >
         <Form form={bgForm} layout="vertical">
-          <Form.Item name="content" label="内容" rules={[{ required: true }]}>
+          <Form.Item name="content" label="内容 (content)" rules={[{ required: true }]}>
             <TextArea rows={2} placeholder="例如：10+ years in Investment Banking" />
           </Form.Item>
         </Form>
@@ -554,10 +576,10 @@ export default function MentorForm() {
         destroyOnClose
       >
         <Form form={clipForm} layout="vertical">
-          <Form.Item name="title" label="标题">
+          <Form.Item name="title" label="标题 (title)">
             <Input placeholder="例如：Case Interview 示范" />
           </Form.Item>
-          <Form.Item name="url" label="链接 URL" rules={[{ required: true }]}>
+          <Form.Item name="url" label="链接 URL (url)" rules={[{ required: true }]}>
             <Input placeholder="https://..." />
           </Form.Item>
         </Form>
@@ -572,14 +594,14 @@ export default function MentorForm() {
       >
         <Form form={reviewForm} layout="vertical">
           <Space size="middle">
-            <Form.Item name="studentName" label="学生姓名">
+            <Form.Item name="studentName" label="学生姓名 (studentName)">
               <Input style={{ width: 160 }} />
             </Form.Item>
-            <Form.Item name="rating" label="评分" initialValue={5}>
+            <Form.Item name="rating" label="评分 (rating)" initialValue={5}>
               <InputNumber min={1} max={5} style={{ width: 80 }} />
             </Form.Item>
           </Space>
-          <Form.Item name="content" label="评价内容" rules={[{ required: true }]}>
+          <Form.Item name="content" label="评价内容 (content)" rules={[{ required: true }]}>
             <TextArea rows={3} />
           </Form.Item>
         </Form>
