@@ -5,7 +5,7 @@ import { toPaginated } from './types';
 export interface Tag {
   id: number;
   name: string;
-  category: 'industry' | 'company' | 'department' | 'school';
+  category: 'industry' | 'company' | 'department' | 'school' | 'language' | 'skill';
   created_at: string;
   updated_at: string;
 }

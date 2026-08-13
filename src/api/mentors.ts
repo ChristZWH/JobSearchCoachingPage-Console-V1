@@ -1,5 +1,6 @@
 import client from './client';
 import { toPaginated } from './types';
+import type { ListParams, PaginatedResponse } from './types';
 export { toPaginated } from './types';
 export type { ListParams, PaginatedResponse } from './types';
 
@@ -13,6 +14,7 @@ export interface TeachingClip {
 export interface Review {
   name?: string;
   content?: string;
+  rating?: number;
 }
 
 // ── Mentor ──
@@ -51,6 +53,27 @@ export interface MentorEducation {
   degree: string;
   major: string;
   graduationYear: number;
+}
+
+export interface MentorBackground {
+  id: number;
+  mentorId: number;
+  content: string;
+}
+
+export interface MentorClip {
+  id: number;
+  mentorId: number;
+  title: string;
+  url: string;
+}
+
+export interface MentorReview {
+  id: number;
+  mentorId: number;
+  studentName: string;
+  content: string;
+  rating: number;
 }
 
 
@@ -105,4 +128,82 @@ export async function updateEducation(
 
 export async function deleteEducation(mentorId: number, eduId: number): Promise<void> {
   await client.delete(`/admin/mentors/${mentorId}/educations/${eduId}`);
+}
+
+// Background CRUD (professional background bullets)
+export async function getBackgrounds(mentorId: number): Promise<MentorBackground[]> {
+  const res = await client.get(`/admin/mentors/${mentorId}/backgrounds`);
+  return res.data;
+}
+
+export async function createBackground(
+  mentorId: number,
+  data: Partial<MentorBackground>,
+): Promise<MentorBackground> {
+  const res = await client.post(`/admin/mentors/${mentorId}/backgrounds`, data);
+  return res.data;
+}
+
+export async function updateBackground(
+  mentorId: number,
+  bgId: number,
+  data: Partial<MentorBackground>,
+): Promise<MentorBackground> {
+  const res = await client.put(`/admin/mentors/${mentorId}/backgrounds/${bgId}`, data);
+  return res.data;
+}
+
+export async function deleteBackground(mentorId: number, bgId: number): Promise<void> {
+  await client.delete(`/admin/mentors/${mentorId}/backgrounds/${bgId}`);
+}
+
+// Clip CRUD (teaching clips)
+export async function getClips(mentorId: number): Promise<MentorClip[]> {
+  const res = await client.get(`/admin/mentors/${mentorId}/clips`);
+  return res.data;
+}
+
+export async function createClip(mentorId: number, data: Partial<MentorClip>): Promise<MentorClip> {
+  const res = await client.post(`/admin/mentors/${mentorId}/clips`, data);
+  return res.data;
+}
+
+export async function updateClip(
+  mentorId: number,
+  clipId: number,
+  data: Partial<MentorClip>,
+): Promise<MentorClip> {
+  const res = await client.put(`/admin/mentors/${mentorId}/clips/${clipId}`, data);
+  return res.data;
+}
+
+export async function deleteClip(mentorId: number, clipId: number): Promise<void> {
+  await client.delete(`/admin/mentors/${mentorId}/clips/${clipId}`);
+}
+
+// Review CRUD (student reviews)
+export async function getReviews(mentorId: number): Promise<MentorReview[]> {
+  const res = await client.get(`/admin/mentors/${mentorId}/reviews`);
+  return res.data;
+}
+
+export async function createReview(
+  mentorId: number,
+  data: Partial<MentorReview>,
+): Promise<MentorReview> {
+  const res = await client.post(`/admin/mentors/${mentorId}/reviews`, data);
+  return res.data;
+}
+
+export async function updateReview(
+  mentorId: number,
+  reviewId: number,
+  data: Partial<MentorReview>,
+): Promise<MentorReview> {
+  const res = await client.put(`/admin/mentors/${mentorId}/reviews/${reviewId}`, data);
+  return res.data;
+}
+
+export async function deleteReview(mentorId: number, reviewId: number): Promise<void> {
+  await client.delete(`/admin/mentors/${mentorId}/reviews/${reviewId}`);
 }

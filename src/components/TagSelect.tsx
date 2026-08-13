@@ -3,7 +3,7 @@ import { Select, message } from 'antd';
 import { getTags, type Tag as TagType } from '../api/tags';
 
 interface TagSelectProps {
-  /** tags table category: industry | company | department | school */
+  /** tags table category: industry | company | department | school | language | skill */
   category: TagType['category'];
   /** current form value */
   value?: string;
@@ -64,7 +64,9 @@ export default function TagSelect({ category, value, onChange, placeholder, styl
     category === 'industry' ? '行业' :
     category === 'company' ? '公司' :
     category === 'department' ? '部门' :
-    category === 'school' ? '学校' : category;
+    category === 'school' ? '学校' :
+    category === 'language' ? '语言' :
+    category === 'skill' ? '技能' : category;
 
   return (
     <Select

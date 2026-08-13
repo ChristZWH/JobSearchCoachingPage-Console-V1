@@ -9,10 +9,12 @@ import type { TableColumnsType } from 'antd';
 import {
   getMentor, createMentor, updateMentor,
   getEducations, createEducation, updateEducation, deleteEducation,
-  type MentorEducation,
+  getBackgrounds, createBackground, updateBackground, deleteBackground,
+  getClips, createClip, updateClip, deleteClip,
+  getReviews, createReview, updateReview, deleteReview,
+  type MentorEducation, type MentorBackground, type MentorClip, type MentorReview,
 } from '../../api/mentors';
 import { getTags, type Tag as TagType } from '../../api/tags';
-import { StringArrayEditor, ReviewListEditor, ClipListEditor } from '../../components/JsonEditor';
 import TagSelect from '../../components/TagSelect';
 import ImageUploadField from '../../components/ImageUploadField';
 
@@ -34,6 +36,27 @@ export default function MentorForm() {
   const [eduForm] = Form.useForm();
   const [eduLoading, setEduLoading] = useState(false);
 
+  // Background sub-table
+  const [backgrounds, setBackgrounds] = useState<MentorBackground[]>([]);
+  const [bgModalOpen, setBgModalOpen] = useState(false);
+  const [editingBg, setEditingBg] = useState<MentorBackground | null>(null);
+  const [bgForm] = Form.useForm();
+  const [bgLoading, setBgLoading] = useState(false);
+
+  // Clip sub-table
+  const [clips, setClips] = useState<MentorClip[]>([]);
+  const [clipModalOpen, setClipModalOpen] = useState(false);
+  const [editingClip, setEditingClip] = useState<MentorClip | null>(null);
+  const [clipForm] = Form.useForm();
+  const [clipLoading, setClipLoading] = useState(false);
+
+  // Review sub-table
+  const [reviews, setReviews] = useState<MentorReview[]>([]);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [editingReview, setEditingReview] = useState<MentorReview | null>(null);
+  const [reviewForm] = Form.useForm();
+  const [reviewLoading, setReviewLoading] = useState(false);
+
   // Tags
   const [allTags, setAllTags] = useState<TagType[]>([]);
 
@@ -45,7 +68,7 @@ export default function MentorForm() {
   const tagOptions = useMemo(() => {
     const grouped: Record<string, { label: string; value: number }[]> = {};
     allTags.forEach((t) => {
-      const cat = t.category === 'industry' ? '行业' : t.category === 'company' ? '公司' : t.category === 'department' ? '部门' : t.category === 'school' ? '学校' : t.category;
+      const cat = t.category === 'industry' ? '行业' : t.category === 'company' ? '公司' : t.category === 'department' ? '部门' : t.category === 'school' ? '学校' : t.category === 'language' ? '语言' : t.category === 'skill' ? '技能' : t.category;
       if (!grouped[cat]) grouped[cat] = [];
       grouped[cat].push({ label: t.name, value: t.id });
     });
@@ -60,6 +83,30 @@ export default function MentorForm() {
     finally { setEduLoading(false); }
   }, [id]);
 
+  const loadBackgrounds = useCallback(async () => {
+    if (!id) return;
+    setBgLoading(true);
+    try { const list = await getBackgrounds(Number(id)); setBackgrounds(list); }
+    catch { message.error('加载职业背景失败'); }
+    finally { setBgLoading(false); }
+  }, [id]);
+
+  const loadClips = useCallback(async () => {
+    if (!id) return;
+    setClipLoading(true);
+    try { const list = await getClips(Number(id)); setClips(list); }
+    catch { message.error('加载教学片段失败'); }
+    finally { setClipLoading(false); }
+  }, [id]);
+
+  const loadReviews = useCallback(async () => {
+    if (!id) return;
+    setReviewLoading(true);
+    try { const list = await getReviews(Number(id)); setReviews(list); }
+    catch { message.error('加载学员评价失败'); }
+    finally { setReviewLoading(false); }
+  }, [id]);
+
   const loadMentor = useCallback(async () => {
     if (!id) return;
     setLoading(true);
@@ -70,9 +117,12 @@ export default function MentorForm() {
         tags: (m.tags || []).map((t) => t.id),
       });
       loadEducations();
+      loadBackgrounds();
+      loadClips();
+      loadReviews();
     } catch { message.error('加载导师信息失败'); }
     finally { setLoading(false); }
-  }, [id, form, loadEducations]);
+  }, [id, form, loadEducations, loadBackgrounds, loadClips, loadReviews]);
 
   useEffect(() => { loadMentor(); }, [loadMentor]);
 
@@ -134,6 +184,114 @@ export default function MentorForm() {
     } catch { message.error('删除教育经历失败'); }
   };
 
+  // Background CRUD handlers
+  const openAddBg = () => {
+    setEditingBg(null);
+    bgForm.resetFields();
+    setBgModalOpen(true);
+  };
+
+  const openEditBg = (record: MentorBackground) => {
+    setEditingBg(record);
+    bgForm.setFieldsValue(record);
+    setBgModalOpen(true);
+  };
+
+  const handleBgOk = async () => {
+    const values = await bgForm.validateFields();
+    try {
+      if (editingBg) {
+        await updateBackground(Number(id), editingBg.id, values);
+        message.success('职业背景更新成功');
+      } else {
+        await createBackground(Number(id), values);
+        message.success('职业背景添加成功');
+      }
+      setBgModalOpen(false);
+      loadBackgrounds();
+    } catch { message.error('保存职业背景失败'); }
+  };
+
+  const handleBgDelete = async (bgId: number) => {
+    try {
+      await deleteBackground(Number(id), bgId);
+      message.success('职业背景删除成功');
+      loadBackgrounds();
+    } catch { message.error('删除职业背景失败'); }
+  };
+
+  // Clip CRUD handlers
+  const openAddClip = () => {
+    setEditingClip(null);
+    clipForm.resetFields();
+    setClipModalOpen(true);
+  };
+
+  const openEditClip = (record: MentorClip) => {
+    setEditingClip(record);
+    clipForm.setFieldsValue(record);
+    setClipModalOpen(true);
+  };
+
+  const handleClipOk = async () => {
+    const values = await clipForm.validateFields();
+    try {
+      if (editingClip) {
+        await updateClip(Number(id), editingClip.id, values);
+        message.success('教学片段更新成功');
+      } else {
+        await createClip(Number(id), values);
+        message.success('教学片段添加成功');
+      }
+      setClipModalOpen(false);
+      loadClips();
+    } catch { message.error('保存教学片段失败'); }
+  };
+
+  const handleClipDelete = async (clipId: number) => {
+    try {
+      await deleteClip(Number(id), clipId);
+      message.success('教学片段删除成功');
+      loadClips();
+    } catch { message.error('删除教学片段失败'); }
+  };
+
+  // Review CRUD handlers
+  const openAddReview = () => {
+    setEditingReview(null);
+    reviewForm.resetFields();
+    setReviewModalOpen(true);
+  };
+
+  const openEditReview = (record: MentorReview) => {
+    setEditingReview(record);
+    reviewForm.setFieldsValue(record);
+    setReviewModalOpen(true);
+  };
+
+  const handleReviewOk = async () => {
+    const values = await reviewForm.validateFields();
+    try {
+      if (editingReview) {
+        await updateReview(Number(id), editingReview.id, values);
+        message.success('学员评价更新成功');
+      } else {
+        await createReview(Number(id), values);
+        message.success('学员评价添加成功');
+      }
+      setReviewModalOpen(false);
+      loadReviews();
+    } catch { message.error('保存学员评价失败'); }
+  };
+
+  const handleReviewDelete = async (reviewId: number) => {
+    try {
+      await deleteReview(Number(id), reviewId);
+      message.success('学员评价删除成功');
+      loadReviews();
+    } catch { message.error('删除学员评价失败'); }
+  };
+
   const eduColumns: TableColumnsType<MentorEducation> = [
     { title: '学校', dataIndex: 'schoolName', key: 'schoolName' },
     { title: '国家', dataIndex: 'country', key: 'country', width: 80 },
@@ -148,6 +306,66 @@ export default function MentorForm() {
             <Button type="link" icon={<EditOutlined />} onClick={() => openEditEdu(record)} />
           </Tooltip>
           <Popconfirm title="确认删除？" onConfirm={() => handleEduDelete(record.id)}>
+            <Tooltip title="删除">
+              <Button type="link" danger icon={<DeleteOutlined />} />
+            </Tooltip>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
+  const bgColumns: TableColumnsType<MentorBackground> = [
+    { title: '内容', dataIndex: 'content', key: 'content' },
+    {
+      title: '操作', key: 'actions', width: 100,
+      render: (_: unknown, record: MentorBackground) => (
+        <Space size={0}>
+          <Tooltip title="编辑">
+            <Button type="link" icon={<EditOutlined />} onClick={() => openEditBg(record)} />
+          </Tooltip>
+          <Popconfirm title="确认删除？" onConfirm={() => handleBgDelete(record.id)}>
+            <Tooltip title="删除">
+              <Button type="link" danger icon={<DeleteOutlined />} />
+            </Tooltip>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
+  const clipColumns: TableColumnsType<MentorClip> = [
+    { title: '标题', dataIndex: 'title', key: 'title', width: 220 },
+    { title: '链接', dataIndex: 'url', key: 'url', ellipsis: true },
+    {
+      title: '操作', key: 'actions', width: 100,
+      render: (_: unknown, record: MentorClip) => (
+        <Space size={0}>
+          <Tooltip title="编辑">
+            <Button type="link" icon={<EditOutlined />} onClick={() => openEditClip(record)} />
+          </Tooltip>
+          <Popconfirm title="确认删除？" onConfirm={() => handleClipDelete(record.id)}>
+            <Tooltip title="删除">
+              <Button type="link" danger icon={<DeleteOutlined />} />
+            </Tooltip>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
+  const reviewColumns: TableColumnsType<MentorReview> = [
+    { title: '学生姓名', dataIndex: 'studentName', key: 'studentName', width: 140 },
+    { title: '内容', dataIndex: 'content', key: 'content' },
+    { title: '评分', dataIndex: 'rating', key: 'rating', width: 70 },
+    {
+      title: '操作', key: 'actions', width: 100,
+      render: (_: unknown, record: MentorReview) => (
+        <Space size={0}>
+          <Tooltip title="编辑">
+            <Button type="link" icon={<EditOutlined />} onClick={() => openEditReview(record)} />
+          </Tooltip>
+          <Popconfirm title="确认删除？" onConfirm={() => handleReviewDelete(record.id)}>
             <Tooltip title="删除">
               <Button type="link" danger icon={<DeleteOutlined />} />
             </Tooltip>
@@ -222,36 +440,9 @@ export default function MentorForm() {
             <TextArea rows={4} placeholder="完整个人介绍" />
           </Form.Item>
 
-          <Divider orientation="left">详细信息</Divider>
-
-          {/* JSON 数组字段 */}
-          <Form.Item name="professionalBackground" label="职业背景">
-            <StringArrayEditor placeholder="例如：10+ years in Investment Banking" />
-          </Form.Item>
-
-          <Form.Item name="industrySpecialization" label="行业专长">
-            <StringArrayEditor placeholder="例如：Investment Banking" />
-          </Form.Item>
-
-          <Form.Item name="languages" label="语言">
-            <StringArrayEditor placeholder="例如：English" />
-          </Form.Item>
-
-          <Form.Item name="keySkills" label="核心技能">
-            <StringArrayEditor placeholder="例如：M&A Advisory" />
-          </Form.Item>
-
-          <Form.Item name="reviews" label="学员评价">
-            <ReviewListEditor />
-          </Form.Item>
-
-          <Form.Item name="teachingClips" label="教学片段">
-            <ClipListEditor />
-          </Form.Item>
-
           <Divider orientation="left">标签关联</Divider>
 
-          <Form.Item name="tags" label="标签">
+          <Form.Item name="tags" label="标签（语言 / 技能 / 行业专长等）" extra="职业背景、教学片段、学员评价在下方独立管理">
             <Select
               mode="multiple"
               allowClear
@@ -292,6 +483,27 @@ export default function MentorForm() {
         </Card>
       )}
 
+      {isEdit && (
+        <Card title="职业背景" style={{ marginTop: 16 }}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={openAddBg} style={{ marginBottom: 16 }}>添加职业背景</Button>
+          <Table dataSource={backgrounds} columns={bgColumns} rowKey="id" loading={bgLoading} pagination={false} />
+        </Card>
+      )}
+
+      {isEdit && (
+        <Card title="教学片段" style={{ marginTop: 16 }}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={openAddClip} style={{ marginBottom: 16 }}>添加教学片段</Button>
+          <Table dataSource={clips} columns={clipColumns} rowKey="id" loading={clipLoading} pagination={false} />
+        </Card>
+      )}
+
+      {isEdit && (
+        <Card title="学员评价" style={{ marginTop: 16 }}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={openAddReview} style={{ marginBottom: 16 }}>添加学员评价</Button>
+          <Table dataSource={reviews} columns={reviewColumns} rowKey="id" loading={reviewLoading} pagination={false} />
+        </Card>
+      )}
+
       <Modal
         title={editingEdu ? '编辑教育经历' : '添加教育经历'}
         open={eduModalOpen}
@@ -317,6 +529,59 @@ export default function MentorForm() {
               <InputNumber style={{ width: 100 }} min={1950} max={2030} />
             </Form.Item>
           </Space>
+        </Form>
+      </Modal>
+
+      <Modal
+        title={editingBg ? '编辑职业背景' : '添加职业背景'}
+        open={bgModalOpen}
+        onOk={handleBgOk}
+        onCancel={() => setBgModalOpen(false)}
+        destroyOnClose
+      >
+        <Form form={bgForm} layout="vertical">
+          <Form.Item name="content" label="内容" rules={[{ required: true }]}>
+            <TextArea rows={2} placeholder="例如：10+ years in Investment Banking" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title={editingClip ? '编辑教学片段' : '添加教学片段'}
+        open={clipModalOpen}
+        onOk={handleClipOk}
+        onCancel={() => setClipModalOpen(false)}
+        destroyOnClose
+      >
+        <Form form={clipForm} layout="vertical">
+          <Form.Item name="title" label="标题">
+            <Input placeholder="例如：Case Interview 示范" />
+          </Form.Item>
+          <Form.Item name="url" label="链接 URL" rules={[{ required: true }]}>
+            <Input placeholder="https://..." />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title={editingReview ? '编辑学员评价' : '添加学员评价'}
+        open={reviewModalOpen}
+        onOk={handleReviewOk}
+        onCancel={() => setReviewModalOpen(false)}
+        destroyOnClose
+      >
+        <Form form={reviewForm} layout="vertical">
+          <Space size="middle">
+            <Form.Item name="studentName" label="学生姓名">
+              <Input style={{ width: 160 }} />
+            </Form.Item>
+            <Form.Item name="rating" label="评分" initialValue={5}>
+              <InputNumber min={1} max={5} style={{ width: 80 }} />
+            </Form.Item>
+          </Space>
+          <Form.Item name="content" label="评价内容" rules={[{ required: true }]}>
+            <TextArea rows={3} />
+          </Form.Item>
         </Form>
       </Modal>
     </>

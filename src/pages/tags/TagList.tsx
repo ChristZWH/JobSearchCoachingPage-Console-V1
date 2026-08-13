@@ -12,6 +12,8 @@ const categoryColors: Record<string, string> = {
   company: 'green',
   department: 'orange',
   school: 'purple',
+  language: 'cyan',
+  skill: 'geekblue',
 };
 
 export default function TagList() {
@@ -91,6 +93,8 @@ export default function TagList() {
               { label: '公司', value: 'company' },
               { label: '部门', value: 'department' },
               { label: '学校', value: 'school' },
+              { label: '语言', value: 'language' },
+              { label: '技能', value: 'skill' },
             ]} />
           </Form.Item>
         </Form>
