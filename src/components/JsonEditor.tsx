@@ -130,3 +130,36 @@ export function SubServiceListEditor({
     </div>
   );
 }
+
+/** String-list editor: one input per line (e.g. service stage details). */
+export function StringListEditor({
+  value = [],
+  onChange,
+}: {
+  value?: string[];
+  onChange?: (v: string[]) => void;
+}) {
+  // Normalise null (from backend NULL JSON fields) to empty array
+  const list: string[] = value ?? [];
+
+  const handleAdd = () => onChange?.([...list, '']);
+  const handleRemove = (i: number) => onChange?.(list.filter((_, idx) => idx !== i));
+
+  return (
+    <div>
+      {list.map((item, i) => (
+        <Space key={i} style={{ display: 'flex', marginBottom: 8 }}>
+          <Input
+            placeholder={`要点 ${i + 1}`}
+            value={item}
+            onChange={(e) => {
+              const next = [...list]; next[i] = e.target.value; onChange?.(next);
+            }}
+          />
+          <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleRemove(i)} />
+        </Space>
+      ))}
+      <Button type="dashed" onClick={handleAdd} icon={<PlusOutlined />}>添加要点</Button>
+    </div>
+  );
+}

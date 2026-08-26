@@ -20,7 +20,7 @@ export interface ServiceStage {
   title: string;
   subtitle: string;
   description: string;
-  details: Record<string, unknown>[];
+  details: string[];
   image: string;
 }
 
@@ -46,7 +46,7 @@ export async function deleteServiceCategory(id: string): Promise<void> {
 
 // Service Stages
 export async function getServiceStages(): Promise<ServiceStage[]> {
-  const res = await client.get('/service-stages');
+  const res = await client.get('/services/stages');
   return res.data;
 }
 

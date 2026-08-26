@@ -13,7 +13,8 @@ import CaseList from './pages/cases/CaseList';
 import CaseForm from './pages/cases/CaseForm';
 import InsightList from './pages/insights/InsightList';
 import InsightForm from './pages/insights/InsightForm';
-import ServiceList from './pages/services/ServiceList';
+import ServiceCategoryList from './pages/services/ServiceCategoryList';
+import ServiceStageList from './pages/services/ServiceStageList';
 import SiteStatList from './pages/siteStats/SiteStatList';
 import CompanyList from './pages/companies/CompanyList';
 import WhyUsList from './pages/whyUs/WhyUsList';
@@ -115,7 +116,9 @@ export default function App() {
                 />
 
                 {/* Services */}
-                <Route path="/services" element={<ServiceList />} />
+                <Route path="/service-categories" element={<ServiceCategoryList />} />
+                <Route path="/service-stages" element={<ServiceStageList />} />
+                <Route path="/services" element={<Navigate to="/service-categories" replace />} />
 
                 {/* Site Stats */}
                 <Route path="/site-stats" element={<SiteStatList />} />
