@@ -7,7 +7,8 @@ import {
   type ServiceCategory,
 } from '../../api/services';
 import { useAuth } from '../../hooks/useAuth';
-import { SubServiceListEditor } from '../../components/JsonEditor';
+import { StringListEditor } from '../../components/JsonEditor';
+import ImageUploadField from '../../components/ImageUploadField';
 
 const { Title } = Typography;
 
@@ -50,7 +51,10 @@ export default function ServiceCategoryList() {
     { title: '名称', dataIndex: 'title', key: 'title' },
     { title: '描述', dataIndex: 'description', key: 'description', ellipsis: true },
     { title: '子服务', dataIndex: 'subServices', key: 'sub_services',
-      render: (v: Record<string, unknown>[]) => v?.length ?? 0,
+      render: (v: string[]) => {
+        const list = v ?? [];
+        return list.slice(0, 2).join('、') + (list.length > 2 ? `…（共${list.length}项）` : '');
+      },
     },
   ];
 
@@ -85,8 +89,14 @@ export default function ServiceCategoryList() {
           <Form.Item name="id" label="ID (标识)" rules={[{ required: true }]}><Input disabled={!!editing} /></Form.Item>
           <Form.Item name="title" label="名称" rules={[{ required: true }]}><Input /></Form.Item>
           <Form.Item name="description" label="描述"><Input.TextArea rows={2} /></Form.Item>
-          <Form.Item name="subServices" label="子服务">
-            <SubServiceListEditor />
+          <Form.Item name="icon" label="图标（emoji，官网卡片展示）">
+            <Input maxLength={8} placeholder="如 💡" style={{ width: 200 }} />
+          </Form.Item>
+          <Form.Item name="backgroundImage" label="背景图（官网分类卡片背景）">
+            <ImageUploadField previewWidth={160} previewHeight={90} objectFit="cover" />
+          </Form.Item>
+          <Form.Item name="subServices" label="细分方向（官网卡片圆点列表）">
+            <StringListEditor addLabel="添加细分方向" itemPlaceholder="细分方向" />
           </Form.Item>
         </Form>
       </Modal>

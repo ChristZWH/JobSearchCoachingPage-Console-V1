@@ -11,6 +11,8 @@ const categoryColors: Record<string, string> = {
   industry: 'blue',
   company: 'green',
   department: 'orange',
+  region: 'red',
+  targetRole: 'gold',
   school: 'purple',
   language: 'cyan',
   skill: 'geekblue',

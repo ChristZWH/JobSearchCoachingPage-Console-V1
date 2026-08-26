@@ -80,64 +80,17 @@ export default function JsonEditor({
   );
 }
 
-/** Sub-services editor: name + price + description */
-export function SubServiceListEditor({
-  value = [],
-  onChange,
-}: {
-  value?: { name?: string; price?: string; description?: string }[];
-  onChange?: (v: { name?: string; price?: string; description?: string }[]) => void;
-}) {
-  // Normalise null (from backend NULL JSON fields) to empty array
-  type SubService = { name?: string; price?: string; description?: string };
-  const list: SubService[] = value ?? [];
-
-  const handleAdd = () => onChange?.([...list, { name: '', price: '', description: '' }]);
-  const handleRemove = (i: number) => onChange?.(list.filter((_, idx) => idx !== i));
-
-  return (
-    <div>
-      {list.map((item, i) => (
-        <Space key={i} style={{ display: 'flex', marginBottom: 8, alignItems: 'flex-start' }} wrap>
-          <Input
-            placeholder="服务名称"
-            value={item.name || ''}
-            onChange={(e) => {
-              const next = [...list]; next[i] = { ...next[i], name: e.target.value }; onChange?.(next);
-            }}
-            style={{ width: 180 }}
-          />
-          <Input
-            placeholder="价格"
-            value={item.price || ''}
-            onChange={(e) => {
-              const next = [...list]; next[i] = { ...next[i], price: e.target.value }; onChange?.(next);
-            }}
-            style={{ width: 120 }}
-          />
-          <Input
-            placeholder="描述"
-            value={item.description || ''}
-            onChange={(e) => {
-              const next = [...list]; next[i] = { ...next[i], description: e.target.value }; onChange?.(next);
-            }}
-            style={{ width: 220 }}
-          />
-          <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleRemove(i)} />
-        </Space>
-      ))}
-      <Button type="dashed" onClick={handleAdd} icon={<PlusOutlined />}>添加子服务</Button>
-    </div>
-  );
-}
-
 /** String-list editor: one input per line (e.g. service stage details). */
 export function StringListEditor({
   value = [],
   onChange,
+  addLabel = '添加要点',
+  itemPlaceholder = '要点',
 }: {
   value?: string[];
   onChange?: (v: string[]) => void;
+  addLabel?: string;
+  itemPlaceholder?: string;
 }) {
   // Normalise null (from backend NULL JSON fields) to empty array
   const list: string[] = value ?? [];
@@ -150,7 +103,7 @@ export function StringListEditor({
       {list.map((item, i) => (
         <Space key={i} style={{ display: 'flex', marginBottom: 8 }}>
           <Input
-            placeholder={`要点 ${i + 1}`}
+            placeholder={`${itemPlaceholder} ${i + 1}`}
             value={item}
             onChange={(e) => {
               const next = [...list]; next[i] = e.target.value; onChange?.(next);
@@ -159,7 +112,7 @@ export function StringListEditor({
           <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleRemove(i)} />
         </Space>
       ))}
-      <Button type="dashed" onClick={handleAdd} icon={<PlusOutlined />}>添加要点</Button>
+      <Button type="dashed" onClick={handleAdd} icon={<PlusOutlined />}>{addLabel}</Button>
     </div>
   );
 }

@@ -6,13 +6,7 @@ export interface ServiceCategory {
   description: string;
   icon: string;
   backgroundImage: string;
-  subServices: SubService[];
-}
-
-export interface SubService {
-  name: string;
-  price: string;
-  description: string;
+  subServices: string[];
 }
 
 export interface ServiceStage {

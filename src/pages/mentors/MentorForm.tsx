@@ -7,16 +7,17 @@ import {
 import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import type { TableColumnsType } from 'antd';
 import {
-  getMentor, createMentor, updateMentor,
+  getMentors, getMentor, createMentor, updateMentor,
   getEducations, createEducation, updateEducation, deleteEducation,
   getBackgrounds, createBackground, updateBackground, deleteBackground,
   getClips, createClip, updateClip, deleteClip,
   getReviews, createReview, updateReview, deleteReview,
-  type MentorEducation, type MentorBackground, type MentorClip, type MentorReview,
+  type Mentor, type MentorEducation, type MentorBackground, type MentorClip, type MentorReview,
 } from '../../api/mentors';
 import { getTags, type Tag as TagType } from '../../api/tags';
 import TagSelect from '../../components/TagSelect';
 import ImageUploadField from '../../components/ImageUploadField';
+import { filterFieldLabel, filterControlBox, WEBSITE_FILTER_DIMENSIONS } from '../../utils/filterDimension';
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -82,6 +83,27 @@ export default function MentorForm() {
 
   useEffect(() => {
     getTags({ page_size: 200 }).then((res) => setAllTags(res.data)).catch(() => {});
+  }, []);
+
+  // 官网筛选维度的数据驱动选项：从现有导师数据提取各维度去重值，
+  // 与官网 mentors 页筛选下拉的数据源保持一致（参考 FrontSide extractOptions）。
+  const [dimOptions, setDimOptions] = useState<Record<string, string[]>>({});
+
+  useEffect(() => {
+    getMentors({ page_size: 500 }).then((res) => {
+      const values: Record<string, string[]> = {};
+      for (const field of WEBSITE_FILTER_DIMENSIONS) {
+        const key = field as keyof Mentor;
+        values[field] = [
+          ...new Set(
+            (res.data || [])
+              .map((m) => m[key])
+              .filter((v): v is string => typeof v === 'string' && v.trim() !== ''),
+          ),
+        ].sort();
+      }
+      setDimOptions(values);
+    }).catch(() => {});
   }, []);
 
   // Build tag options for the multi-value "标签关联" field.
@@ -418,11 +440,15 @@ export default function MentorForm() {
             <Form.Item name="title" label="职位 (title)" rules={[{ required: true }]}>
               <Input style={{ width: 200 }} placeholder="例如：Managing Director" />
             </Form.Item>
-            <Form.Item name="company" label="公司 (company)" rules={[{ required: true }, noChineseRule('公司')]}>
-              <TagSelect category="company" placeholder="选择或输入公司..." style={{ width: 180 }} />
+            <Form.Item name="company" label={filterFieldLabel('company', '公司 (company)')} tooltip="官网筛选维度" rules={[{ required: true }, noChineseRule('公司')]}>
+              <div style={filterControlBox('company')}>
+                <TagSelect category="company" placeholder="选择或输入公司..." style={{ width: 180 }} extraOptions={dimOptions['company'] ?? []} />
+              </div>
             </Form.Item>
-            <Form.Item name="department" label="部门 (department)" rules={[noChineseRule('部门')]}>
-              <TagSelect category="department" placeholder="选择或输入部门..." style={{ width: 160 }} />
+            <Form.Item name="department" label={filterFieldLabel('department', '部门 (department)')} tooltip="官网筛选维度" rules={[noChineseRule('部门')]}>
+              <div style={filterControlBox('department')}>
+                <TagSelect category="department" placeholder="选择或输入部门..." style={{ width: 160 }} extraOptions={dimOptions['department'] ?? []} />
+              </div>
             </Form.Item>
           </Space>
 
@@ -435,17 +461,23 @@ export default function MentorForm() {
                 { label: '法律', value: 'legal' }, { label: '其他', value: 'other' },
               ]} />
             </Form.Item>
-            <Form.Item name="region" label="地区 (region)" rules={[noChineseRule('地区')]}>
-              <TagSelect category="region" placeholder="选择或输入地区..." style={{ width: 160 }} />
+            <Form.Item name="region" label={filterFieldLabel('region', '地区 (region)')} tooltip="官网筛选维度" rules={[noChineseRule('地区')]}>
+              <div style={filterControlBox('region')}>
+                <TagSelect category="region" placeholder="选择或输入地区..." style={{ width: 160 }} extraOptions={dimOptions['region'] ?? []} />
+              </div>
             </Form.Item>
-            <Form.Item name="industry" label="行业 (industry)" rules={[noChineseRule('行业')]}>
-              <TagSelect category="industry" placeholder="选择或输入行业..." style={{ width: 180 }} />
+            <Form.Item name="industry" label={filterFieldLabel('industry', '行业 (industry)')} tooltip="官网筛选维度" rules={[noChineseRule('行业')]}>
+              <div style={filterControlBox('industry')}>
+                <TagSelect category="industry" placeholder="选择或输入行业..." style={{ width: 180 }} extraOptions={dimOptions['industry'] ?? []} />
+              </div>
             </Form.Item>
-            <Form.Item name="targetRole" label="辅导求职职位 (targetRole)" rules={[noChineseRule('辅导求职职位')]}>
-              <TagSelect category="targetRole" placeholder="选择或输入职位..." style={{ width: 180 }} />
+            <Form.Item name="targetRole" label={filterFieldLabel('targetRole', '辅导求职职位 (targetRole)')} tooltip="官网筛选维度" rules={[noChineseRule('辅导求职职位')]}>
+              <div style={filterControlBox('targetRole')}>
+                <TagSelect category="targetRole" placeholder="选择或输入职位..." style={{ width: 250 }} extraOptions={dimOptions['targetRole'] ?? []} />
+              </div>
             </Form.Item>
             <Form.Item name="experience" label="经验 (experience)">
-              <InputNumber style={{ width: 110 }} min={0} max={50} addonAfter="年" />
+              <InputNumber style={{ width: 150 }} min={0} max={50} addonAfter="年" />
             </Form.Item>
           </Space>
 
