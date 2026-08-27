@@ -108,7 +108,7 @@ export default function CompanyList() {
             <Input />
           </Form.Item>
           <Form.Item name="logo" label="Logo" rules={[{ required: true }]}>
-            <ImageUploadField previewWidth={64} previewHeight={64} objectFit="contain" uploadText="上传" />
+            <ImageUploadField uploadDir="logos" previewWidth={64} previewHeight={64} objectFit="contain" uploadText="上传" />
           </Form.Item>
         </Form>
       </Modal>

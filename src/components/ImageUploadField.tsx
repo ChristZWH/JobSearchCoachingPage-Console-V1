@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Button, Input, Upload, Image, message } from 'antd';
+import { App, Button, Upload, Image } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
 import { getAccessToken } from '../utils/storage';
@@ -7,36 +6,38 @@ import { getAccessToken } from '../utils/storage';
 interface ImageUploadFieldProps {
   value?: string;
   onChange?: (url: string) => void;
+  /** Upload subdirectory (backend allowlist, e.g. "student-cases"); omit for the default date-based storage */
+  uploadDir?: string;
   /** Preview image width (default 80) */
   previewWidth?: number;
   /** Preview image height (default 80) */
   previewHeight?: number;
   /** CSS object-fit for preview (default 'cover') */
   objectFit?: 'cover' | 'contain';
-  /** Placeholder text for URL input (default '或粘贴URL') */
-  urlPlaceholder?: string;
   /** Upload button text (default '上传文件') */
   uploadText?: string;
 }
 
 /**
- * Reusable image upload field — supports file upload and URL paste.
+ * Reusable image upload field — file upload only, no URL paste.
  * Used by MentorForm (avatar), CompanyList (logo), and anywhere an image URL is needed.
  */
 export default function ImageUploadField({
   value,
   onChange,
+  uploadDir,
   previewWidth = 80,
   previewHeight = 80,
   objectFit = 'cover',
-  urlPlaceholder = '或粘贴URL',
   uploadText = '上传文件',
 }: ImageUploadFieldProps) {
-  const [urlInput, setUrlInput] = useState(value || '');
+  // 用 App 上下文里的 message，避免静态方法在 antd v5 + React 19 下弹不出提示
+  const { message } = App.useApp();
 
   const uploadProps: UploadProps = {
     name: 'file',
     action: '/api/admin/upload',
+    data: uploadDir ? { dir: uploadDir } : undefined,
     headers: { Authorization: `Bearer ${getAccessToken()}` },
     showUploadList: false,
     beforeUpload: (file) => {
@@ -61,11 +62,12 @@ export default function ImageUploadField({
         const url = info.file.response?.data?.url || info.file.response?.url;
         if (url) {
           onChange?.(url);
-          setUrlInput(url);
           message.success('上传成功');
         }
       } else if (info.file.status === 'error') {
-        message.error('上传失败');
+        // 把服务端返回的具体原因带上，避免只显示笼统的“上传失败”
+        const errMsg = (info.file.error as { status?: number; message?: string })?.message;
+        message.error(errMsg ? `上传失败：${errMsg}` : '上传失败');
       }
     },
   };
@@ -83,16 +85,6 @@ export default function ImageUploadField({
       <Upload {...uploadProps}>
         <Button icon={<UploadOutlined />}>{uploadText}</Button>
       </Upload>
-      <Input
-        style={{ width: 200 }}
-        placeholder={urlPlaceholder}
-        value={urlInput}
-        onChange={(e) => {
-          setUrlInput(e.target.value);
-          onChange?.(e.target.value);
-        }}
-        allowClear
-      />
     </div>
   );
 }

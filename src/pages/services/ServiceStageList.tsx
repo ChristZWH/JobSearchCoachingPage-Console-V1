@@ -89,7 +89,7 @@ export default function ServiceStageList() {
           <Form.Item name="subtitle" label="副标题"><Input /></Form.Item>
           <Form.Item name="description" label="描述"><Input.TextArea rows={3} /></Form.Item>
           <Form.Item name="image" label="背景图（官网阶段卡片背景）">
-            <ImageUploadField previewWidth={160} previewHeight={90} objectFit="cover" />
+            <ImageUploadField uploadDir="services" previewWidth={160} previewHeight={90} objectFit="cover" />
           </Form.Item>
           <Form.Item name="details" label="要点列表（官网详情区展示）">
             <StringListEditor />

@@ -48,7 +48,7 @@ export default function ServiceCategoryList() {
 
   const columns: TableColumnsType<ServiceCategory> = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 100 },
-    { title: '名称', dataIndex: 'title', key: 'title' },
+    { title: '名称', dataIndex: 'title', key: 'title' ,width:120},
     { title: '描述', dataIndex: 'description', key: 'description', ellipsis: true },
     { title: '子服务', dataIndex: 'subServices', key: 'sub_services',
       render: (v: string[]) => {
@@ -79,7 +79,7 @@ export default function ServiceCategoryList() {
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <Title level={4} style={{ marginBottom: 0 }}>服务分类</Title>
+        <Title level={4} style={{ marginBottom: 0 }}>服务分类（Our Specialty）</Title>
         {isOperatorOrAdmin && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>新增</Button>}
       </div>
       <Table dataSource={data} columns={columns} rowKey="id" loading={loading} />
@@ -93,7 +93,7 @@ export default function ServiceCategoryList() {
             <Input maxLength={8} placeholder="如 💡" style={{ width: 200 }} />
           </Form.Item>
           <Form.Item name="backgroundImage" label="背景图（官网分类卡片背景）">
-            <ImageUploadField previewWidth={160} previewHeight={90} objectFit="cover" />
+            <ImageUploadField uploadDir="services" previewWidth={160} previewHeight={90} objectFit="cover" />
           </Form.Item>
           <Form.Item name="subServices" label="细分方向（官网卡片圆点列表）">
             <StringListEditor addLabel="添加细分方向" itemPlaceholder="细分方向" />

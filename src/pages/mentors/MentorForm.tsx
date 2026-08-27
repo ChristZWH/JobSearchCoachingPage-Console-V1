@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, cloneElement, type ReactElement } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Form, Input, Button, Card, Space, message, Typography, Spin,
@@ -14,7 +14,7 @@ import {
   getReviews, createReview, updateReview, deleteReview,
   type Mentor, type MentorEducation, type MentorBackground, type MentorClip, type MentorReview,
 } from '../../api/mentors';
-import { getTags, type Tag as TagType } from '../../api/tags';
+import { getTags, createTag, type Tag as TagType } from '../../api/tags';
 import TagSelect from '../../components/TagSelect';
 import ImageUploadField from '../../components/ImageUploadField';
 import { filterFieldLabel, filterControlBox, WEBSITE_FILTER_DIMENSIONS } from '../../utils/filterDimension';
@@ -41,6 +41,26 @@ const noChineseRule = (label: string) => ({
       : Promise.resolve();
   },
 });
+
+/**
+ * 筛选维度高亮盒子：既是视觉包裹层，也负责把 Form.Item 注入的 value/onChange
+ * 转发给内部控件。Form.Item 只会把值注入到它的直接子组件，若直接子组件是
+ * 普通 div，值会丢失（回显为空、编辑不生效）。
+ */
+interface FilterBoxProps {
+  field: (typeof WEBSITE_FILTER_DIMENSIONS)[number];
+  value?: string;
+  onChange?: (val: string) => void;
+  children: ReactElement<{ value?: string; onChange?: (val: string) => void }>;
+}
+
+function FilterBox({ field, value, onChange, children }: FilterBoxProps) {
+  return (
+    <div style={filterControlBox(field)}>
+      {cloneElement(children, { value, onChange })}
+    </div>
+  );
+}
 
 export default function MentorForm() {
   const { id } = useParams<{ id: string }>();
@@ -174,7 +194,25 @@ export default function MentorForm() {
 
   useEffect(() => { loadMentor(); }, [loadMentor]);
 
+  // 提交成功后，把筛选维度用到的新值写入标签表（延迟创建：
+  // 表单没提交就不产生孤儿标签；创建失败不影响已保存的导师）。
+  const ensureFilterTagsCreated = async (values: Record<string, unknown>) => {
+    const existing = new Set(allTags.map((t) => `${t.category}:${t.name.toLowerCase()}`));
+    const tasks: Promise<unknown>[] = [];
+    for (const field of WEBSITE_FILTER_DIMENSIONS) {
+      const v = (values[field] as string | undefined)?.trim();
+      if (!v) continue;
+      if (existing.has(`${field}:${v.toLowerCase()}`)) continue;
+      existing.add(`${field}:${v.toLowerCase()}`);
+      tasks.push(createTag({ name: v, category: field }).catch(() => {}));
+    }
+    await Promise.all(tasks);
+  };
+
   const onFinish = async (values: Record<string, unknown>) => {
+    // [临时诊断] 确认保存时表单里 avatar 是什么值、最终 payload 是否携带
+    // console.log('[mentor-save-debug] form values:', values);
+    // console.log('[mentor-save-debug] avatar in values:', values.avatar);
     setSaving(true);
     // Convert tag IDs to backend format: [1,2,3] → [{id:1},{id:2},{id:3}]
     const payload = { ...values };
@@ -188,9 +226,11 @@ export default function MentorForm() {
       } else {
         const created = await createMentor(payload);
         message.success('导师创建成功');
+        await ensureFilterTagsCreated(payload);
         navigate(`/mentors?new=${created.id}`, { replace: true });
         return;
       }
+      await ensureFilterTagsCreated(payload);
       navigate('/mentors');
     } catch { message.error('保存失败'); }
     finally { setSaving(false); }
@@ -218,6 +258,11 @@ export default function MentorForm() {
       } else {
         await createEducation(Number(id), values);
         message.success('教育经历添加成功');
+      }
+      // 保存成功后把新学校名写入标签表（学校下拉依赖 tags 表），失败不阻塞
+      const school = (values as { schoolName?: string }).schoolName?.trim();
+      if (school && !allTags.some((t) => t.category === 'school' && t.name.toLowerCase() === school.toLowerCase())) {
+        createTag({ name: school, category: 'school' }).catch(() => {});
       }
       setEduModalOpen(false);
       loadEducations();
@@ -441,14 +486,14 @@ export default function MentorForm() {
               <Input style={{ width: 200 }} placeholder="例如：Managing Director" />
             </Form.Item>
             <Form.Item name="company" label={filterFieldLabel('company', '公司 (company)')} tooltip="官网筛选维度" rules={[{ required: true }, noChineseRule('公司')]}>
-              <div style={filterControlBox('company')}>
+              <FilterBox field="company">
                 <TagSelect category="company" placeholder="选择或输入公司..." style={{ width: 180 }} extraOptions={dimOptions['company'] ?? []} />
-              </div>
+              </FilterBox>
             </Form.Item>
             <Form.Item name="department" label={filterFieldLabel('department', '部门 (department)')} tooltip="官网筛选维度" rules={[noChineseRule('部门')]}>
-              <div style={filterControlBox('department')}>
+              <FilterBox field="department">
                 <TagSelect category="department" placeholder="选择或输入部门..." style={{ width: 160 }} extraOptions={dimOptions['department'] ?? []} />
-              </div>
+              </FilterBox>
             </Form.Item>
           </Space>
 
@@ -462,19 +507,19 @@ export default function MentorForm() {
               ]} />
             </Form.Item>
             <Form.Item name="region" label={filterFieldLabel('region', '地区 (region)')} tooltip="官网筛选维度" rules={[noChineseRule('地区')]}>
-              <div style={filterControlBox('region')}>
+              <FilterBox field="region">
                 <TagSelect category="region" placeholder="选择或输入地区..." style={{ width: 160 }} extraOptions={dimOptions['region'] ?? []} />
-              </div>
+              </FilterBox>
             </Form.Item>
             <Form.Item name="industry" label={filterFieldLabel('industry', '行业 (industry)')} tooltip="官网筛选维度" rules={[noChineseRule('行业')]}>
-              <div style={filterControlBox('industry')}>
+              <FilterBox field="industry">
                 <TagSelect category="industry" placeholder="选择或输入行业..." style={{ width: 180 }} extraOptions={dimOptions['industry'] ?? []} />
-              </div>
+              </FilterBox>
             </Form.Item>
             <Form.Item name="targetRole" label={filterFieldLabel('targetRole', '辅导求职职位 (targetRole)')} tooltip="官网筛选维度" rules={[noChineseRule('辅导求职职位')]}>
-              <div style={filterControlBox('targetRole')}>
+              <FilterBox field="targetRole">
                 <TagSelect category="targetRole" placeholder="选择或输入职位..." style={{ width: 250 }} extraOptions={dimOptions['targetRole'] ?? []} />
-              </div>
+              </FilterBox>
             </Form.Item>
             <Form.Item name="experience" label="经验 (experience)">
               <InputNumber style={{ width: 150 }} min={0} max={50} addonAfter="年" />
@@ -483,7 +528,7 @@ export default function MentorForm() {
 
           {/* Avatar */}
           <Form.Item name="avatar" label="头像 (avatar)">
-            <ImageUploadField />
+            <ImageUploadField uploadDir="mentors" />
           </Form.Item>
 
           {/* Bio */}

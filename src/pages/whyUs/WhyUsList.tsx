@@ -43,7 +43,7 @@ export default function WhyUsList() {
 
   const columns: TableColumnsType<WhyUsFeature> = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
-    { title: '标题', dataIndex: 'title', key: 'title' },
+    { title: '标题', dataIndex: 'title', key: 'title', width:150},
     { title: '描述', dataIndex: 'description', key: 'description', ellipsis: true },
     { title: '图标', dataIndex: 'icon', key: 'icon', width: 100 },
   ];
