@@ -118,6 +118,16 @@ export default function TagSelect({ category, value, onChange, placeholder, styl
       }
       return existing.value;
     }
+    // 半成品前缀提示（非阻断）：如 TS 是 TSG 的前缀，可能是边打字边保存
+    // 留下的半成品值（problem-to-solve.md P4.2）。不拦截提交，只提醒确认。
+    const prefixOf = mergedOptions.find(
+      (o) =>
+        o.value.toLowerCase().startsWith(cleaned.toLowerCase()) &&
+        o.value.toLowerCase() !== cleaned.toLowerCase(),
+    );
+    if (prefixOf) {
+      message.warning(`「${cleaned}」是已有选项「${prefixOf.value}」的前缀，请确认是否为完整值`);
+    }
     return cleaned;
   };
 

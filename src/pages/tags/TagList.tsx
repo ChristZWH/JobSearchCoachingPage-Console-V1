@@ -8,7 +8,7 @@ import { useAuth } from '../../hooks/useAuth';
 const { Title } = Typography;
 
 const categoryColors: Record<string, string> = {
-  industry: 'blue',
+  industrySpecialization: 'blue',
   company: 'green',
   department: 'orange',
   region: 'red',
@@ -35,7 +35,7 @@ export default function TagList() {
 
   useEffect(() => { load(); }, [load]);
 
-  const openCreate = () => { setEditing(null); form.resetFields(); form.setFieldValue('category', 'industry'); setModalOpen(true); };
+  const openCreate = () => { setEditing(null); form.resetFields(); form.setFieldValue('category', 'industrySpecialization'); setModalOpen(true); };
   const openEdit = (record: TagType) => { setEditing(record); form.setFieldsValue(record); setModalOpen(true); };
 
   const handleOk = async () => {
@@ -91,7 +91,7 @@ export default function TagList() {
           <Form.Item name="name" label="名称" rules={[{ required: true }]}><Input /></Form.Item>
           <Form.Item name="category" label="分类" rules={[{ required: true }]}>
             <Select options={[
-              { label: '行业', value: 'industry' },
+              { label: '行业专长', value: 'industrySpecialization' },
               { label: '公司', value: 'company' },
               { label: '部门', value: 'department' },
               { label: '学校', value: 'school' },

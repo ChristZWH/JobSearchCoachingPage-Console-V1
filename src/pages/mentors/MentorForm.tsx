@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback, cloneElement, type ReactElement } from 'react';
+import { useEffect, useState, useCallback, cloneElement, type ReactElement } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Form, Input, Button, Card, Space, message, Typography, Spin,
@@ -22,20 +22,24 @@ import { filterFieldLabel, filterControlBox, WEBSITE_FILTER_DIMENSIONS } from '.
 const { Title } = Typography;
 const { TextArea } = Input;
 
-// 5 个筛选维度字段仅允许英文：这些字段会原样进入官网筛选下拉，
-// 若混入中文，英文站的下拉菜单会直接显示中文内容，故在控制台源头拦截。
+// 筛选维度与语言/技能/行业专长标签仅允许英文：这些值都会原样显示在
+// 官网（英文站无翻译层），若混入中文，英文站的筛选下拉与导师卡片会
+// 直接显示中文内容，故在控制台源头拦截。value 可能是数组（tags 模式）。
 const noChineseRule = (label: string) => ({
-  validator: (_: unknown, value: string | undefined) => {
+  validator: (_: unknown, value: string | string[] | undefined) => {
     if (!value) return Promise.resolve();
+    const values = Array.isArray(value) ? value : [value];
     // 匹配 CJK 汉字：基本区 U+4E00-U+9FFF、扩展A区 U+3400-U+4DBF、兼容区 U+F900-U+FAFF
-    const hasHan = Array.from(value).some((ch) => {
-      const code = ch.codePointAt(0) ?? 0;
-      return (
-        (code >= 0x3400 && code <= 0x4dbf) ||
-        (code >= 0x4e00 && code <= 0x9fff) ||
-        (code >= 0xf900 && code <= 0xfaff)
-      );
-    });
+    const hasHan = values.some((v) =>
+      Array.from(v).some((ch) => {
+        const code = ch.codePointAt(0) ?? 0;
+        return (
+          (code >= 0x3400 && code <= 0x4dbf) ||
+          (code >= 0x4e00 && code <= 0x9fff) ||
+          (code >= 0xf900 && code <= 0xfaff)
+        );
+      }),
+    );
     return hasHan
       ? Promise.reject(new Error(`${label}仅支持英文，请勿输入中文`))
       : Promise.resolve();
@@ -102,7 +106,7 @@ export default function MentorForm() {
   const [allTags, setAllTags] = useState<TagType[]>([]);
 
   useEffect(() => {
-    getTags({ page_size: 200 }).then((res) => setAllTags(res.data)).catch(() => {});
+    getTags({ page_size: 500 }).then((res) => setAllTags(res.data)).catch(() => {});
   }, []);
 
   // 官网筛选维度的数据驱动选项：从现有导师数据提取各维度去重值，
@@ -126,22 +130,23 @@ export default function MentorForm() {
     }).catch(() => {});
   }, []);
 
-  // Build tag options for the multi-value "标签关联" field.
-  // Only language / skill / industry tags are multi-valued on a mentor and get
-  // derived by the backend into languages / keySkills / industrySpecialization.
-  // Single-valued dimensions (company / department / school) are edited via their
-  // own TagSelect fields elsewhere, so they are excluded here.
-  const tagOptions = useMemo(() => {
-    const MENTOR_TAG_CATEGORIES: TagType['category'][] = ['language', 'skill', 'industry'];
-    const grouped: Record<string, { label: string; value: number }[]> = {};
-    allTags.forEach((t) => {
-      if (!MENTOR_TAG_CATEGORIES.includes(t.category)) return;
-      const cat = t.category === 'industry' ? '行业专长' : t.category === 'language' ? '语言' : '技能';
-      if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push({ label: t.name, value: t.id });
-    });
-    return Object.entries(grouped).map(([group, opts]) => ({ label: group, options: opts }));
+  // 三个多值标签框与 tags 表的映射：值存标签名（新值还没有 id），
+  // 保存时再解析成 {id} 或 {name, category} 交给后端 upsert。
+  const MENTOR_TAG_FIELDS: { field: 'tagLanguages' | 'tagSkills' | 'tagSpecializations'; category: TagType['category']; label: string; placeholder: string }[] = [
+    { field: 'tagLanguages', category: 'language', label: '语言 (languages)', placeholder: '选择或输入语言，回车添加...' },
+    { field: 'tagSkills', category: 'skill', label: '技能 (keySkills)', placeholder: '选择或输入技能，回车添加...' },
+    { field: 'tagSpecializations', category: 'industrySpecialization', label: '行业专长 (industrySpecialization)', placeholder: '选择或输入行业专长，回车添加...' },
+  ];
+
+  const tagOptionsByCategory = useCallback((category: TagType['category']) => {
+    return allTags
+      .filter((t) => t.category === category)
+      .map((t) => ({ label: t.name, value: t.name }));
   }, [allTags]);
+
+  // 按 category 拆出 name 回填三个框（表单值存名称而非 id，新值没有 id）
+  const tagNamesByCategory = (tags: NonNullable<Mentor['tags']>, category: TagType['category']) =>
+    tags.filter((t) => t.category === category).map((t) => t.name);
 
   const loadEducations = useCallback(async () => {
     if (!id) return;
@@ -182,7 +187,9 @@ export default function MentorForm() {
       const m = await getMentor(Number(id));
       form.setFieldsValue({
         ...m,
-        tags: (m.tags || []).map((t) => t.id),
+        tagLanguages: tagNamesByCategory(m.tags || [], 'language'),
+        tagSkills: tagNamesByCategory(m.tags || [], 'skill'),
+        tagSpecializations: tagNamesByCategory(m.tags || [], 'industrySpecialization'),
       });
       loadEducations();
       loadBackgrounds();
@@ -205,19 +212,30 @@ export default function MentorForm() {
     }
   }, [id]);
 
-  // 提交成功后，把筛选维度用到的新值写入标签表（延迟创建：
-  // 表单没提交就不产生孤儿标签；创建失败不影响已保存的导师）。
-  const ensureFilterTagsCreated = async (values: Record<string, unknown>) => {
-    const existing = new Set(allTags.map((t) => `${t.category}:${t.name.toLowerCase()}`));
-    const tasks: Promise<unknown>[] = [];
-    for (const field of WEBSITE_FILTER_DIMENSIONS) {
-      const v = (values[field] as string | undefined)?.trim();
-      if (!v) continue;
-      if (existing.has(`${field}:${v.toLowerCase()}`)) continue;
-      existing.add(`${field}:${v.toLowerCase()}`);
-      tasks.push(createTag({ name: v, category: field }).catch(() => {}));
+  // 清洗输入标签：去控制字符与首尾空白（粘贴常带入制表符）。
+  const sanitizeTagNames = (names: unknown): string[] =>
+    (Array.isArray(names) ? names : [])
+      .map((n) => String(n)
+        .replace(/[\t\n\r]/g, '')
+        // eslint-disable-next-line no-control-regex
+        .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, '')
+        .trim(),
+      )
+      .filter((n) => n.length > 0);
+
+  // 三个框的值 → 后端 tags 载荷：已有标签按 {id} 回传，新值按
+  // {name, category} 交给后端在导师事务里 upsert（原子，失败一起回滚）。
+  const buildTagsPayload = (values: Record<string, unknown>) => {
+    const payloadTags: ({ id: number } | { name: string; category: TagType['category'] })[] = [];
+    for (const { field, category } of MENTOR_TAG_FIELDS) {
+      for (const name of sanitizeTagNames(values[field])) {
+        const existing = allTags.find(
+          (t) => t.category === category && t.name.toLowerCase() === name.toLowerCase(),
+        );
+        payloadTags.push(existing ? { id: existing.id } : { name, category });
+      }
     }
-    await Promise.all(tasks);
+    return payloadTags;
   };
 
   const onFinish = async (values: Record<string, unknown>) => {
@@ -225,11 +243,9 @@ export default function MentorForm() {
     // console.log('[mentor-save-debug] form values:', values);
     // console.log('[mentor-save-debug] avatar in values:', values.avatar);
     setSaving(true);
-    // Convert tag IDs to backend format: [1,2,3] → [{id:1},{id:2},{id:3}]
     const payload = { ...values };
-    if (Array.isArray(payload.tags)) {
-      payload.tags = (payload.tags as number[]).map((id: number) => ({ id }));
-    }
+    payload.tags = buildTagsPayload(values);
+    for (const { field } of MENTOR_TAG_FIELDS) delete payload[field];
     try {
       if (isEdit) {
         await updateMentor(Number(id), payload);
@@ -237,11 +253,9 @@ export default function MentorForm() {
       } else {
         const created = await createMentor(payload);
         message.success('导师创建成功');
-        await ensureFilterTagsCreated(payload);
         navigate(`/mentors?new=${created.id}`, { replace: true });
         return;
       }
-      await ensureFilterTagsCreated(payload);
       navigate('/mentors');
     } catch { message.error('保存失败'); }
     finally { setSaving(false); }
@@ -552,19 +566,27 @@ export default function MentorForm() {
 
           <Divider orientation="left">标签关联</Divider>
 
-          <Form.Item name="tags" label="语言 / 技能 / 行业专长 (tags)" extra="选择导师掌握的语言、核心技能与行业专长（多选）">
-            <Select
-              mode="multiple"
-              allowClear
-              showSearch
-              placeholder="选择已有标签..."
-              options={tagOptions}
-              filterOption={(input, option) =>
-                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-              }
-              style={{ maxWidth: 600 }}
-            />
-          </Form.Item>
+          {MENTOR_TAG_FIELDS.map(({ field, category, label, placeholder }) => (
+            <Form.Item
+              key={field}
+              name={field}
+              label={label}
+              extra={category === 'industrySpecialization' ? '官网导师卡片只显示前 3 个行业专长' : undefined}
+              rules={[noChineseRule(label.replace(/ \(.*\)$/, ''))]}
+            >
+              <Select
+                mode="tags"
+                allowClear
+                showSearch
+                placeholder={placeholder}
+                options={tagOptionsByCategory(category)}
+                filterOption={(input, option) =>
+                  (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+                style={{ maxWidth: 600 }}
+              />
+            </Form.Item>
+          ))}
 
           <Divider orientation="left">显示设置</Divider>
 
