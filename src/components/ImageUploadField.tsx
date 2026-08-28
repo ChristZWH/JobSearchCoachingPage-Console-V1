@@ -6,6 +6,8 @@ import { getAccessToken } from '../utils/storage';
 interface ImageUploadFieldProps {
   value?: string;
   onChange?: (url: string) => void;
+  /** Called with the new URL right after a successful upload (before the form is saved) */
+  onUploaded?: (url: string) => void;
   /** Upload subdirectory (backend allowlist, e.g. "student-cases"); omit for the default date-based storage */
   uploadDir?: string;
   /** Preview image width (default 80) */
@@ -25,6 +27,7 @@ interface ImageUploadFieldProps {
 export default function ImageUploadField({
   value,
   onChange,
+  onUploaded,
   uploadDir,
   previewWidth = 80,
   previewHeight = 80,
@@ -62,6 +65,7 @@ export default function ImageUploadField({
         const url = info.file.response?.data?.url || info.file.response?.url;
         if (url) {
           onChange?.(url);
+          onUploaded?.(url);
           message.success('上传成功');
         }
       } else if (info.file.status === 'error') {

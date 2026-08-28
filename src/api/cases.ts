@@ -40,6 +40,12 @@ export async function updateCase(id: number, data: Partial<StudentCase>): Promis
   return res.data;
 }
 
+// 图片上传即入库：上传成功后立即调用，只更新 image 一列（旧文件后端异步清理）
+export async function updateCaseImage(id: number, image: string): Promise<StudentCase> {
+  const res = await client.put(`/admin/cases/${id}/image`, { image });
+  return res.data;
+}
+
 export async function deleteCase(id: number): Promise<void> {
   await client.delete(`/admin/cases/${id}`);
 }

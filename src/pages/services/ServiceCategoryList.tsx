@@ -3,7 +3,7 @@ import { Table, Button, Modal, Form, Input, Space, message, Popconfirm, Typograp
 import type { TableColumnsType } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import {
-  getServiceCategories, createServiceCategory, updateServiceCategory, deleteServiceCategory,
+  getServiceCategories, createServiceCategory, updateServiceCategory, updateServiceCategoryBackgroundImage, deleteServiceCategory,
   type ServiceCategory,
 } from '../../api/services';
 import { useAuth } from '../../hooks/useAuth';
@@ -45,6 +45,13 @@ export default function ServiceCategoryList() {
     try { await deleteServiceCategory(id); message.success('删除成功'); load(); }
     catch { message.error('删除失败'); }
   };
+
+  // 背景图上传即入库：上传成功后立即更新 DB，无需等保存（仅编辑模式；新增时随表单保存）
+  const handleImageUploaded = useCallback(async (url: string) => {
+    if (!editing) return;
+    try { await updateServiceCategoryBackgroundImage(editing.id, url); }
+    catch { message.error('背景图保存失败，请重新上传'); }
+  }, [editing]);
 
   const columns: TableColumnsType<ServiceCategory> = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 100 },
@@ -93,7 +100,7 @@ export default function ServiceCategoryList() {
             <Input maxLength={8} placeholder="如 💡" style={{ width: 200 }} />
           </Form.Item>
           <Form.Item name="backgroundImage" label="背景图（官网分类卡片背景）">
-            <ImageUploadField uploadDir="services" previewWidth={160} previewHeight={90} objectFit="cover" />
+            <ImageUploadField uploadDir="services" onUploaded={handleImageUploaded} previewWidth={160} previewHeight={90} objectFit="cover" />
           </Form.Item>
           <Form.Item name="subServices" label="细分方向（官网卡片圆点列表）">
             <StringListEditor addLabel="添加细分方向" itemPlaceholder="细分方向" />

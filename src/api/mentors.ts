@@ -99,6 +99,12 @@ export async function updateMentor(id: number, data: Partial<Mentor>): Promise<M
   return res.data;
 }
 
+// 头像上传即入库：上传成功后立即调用，只更新 avatar 一列（旧文件后端异步清理）
+export async function updateMentorAvatar(id: number, avatar: string): Promise<Mentor> {
+  const res = await client.put(`/admin/mentors/${id}/avatar`, { avatar });
+  return res.data;
+}
+
 export async function deleteMentor(id: number): Promise<void> {
   await client.delete(`/admin/mentors/${id}`);
 }

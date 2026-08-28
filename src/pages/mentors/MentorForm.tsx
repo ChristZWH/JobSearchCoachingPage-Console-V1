@@ -7,7 +7,7 @@ import {
 import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import type { TableColumnsType } from 'antd';
 import {
-  getMentors, getMentor, createMentor, updateMentor,
+  getMentors, getMentor, createMentor, updateMentor, updateMentorAvatar,
   getEducations, createEducation, updateEducation, deleteEducation,
   getBackgrounds, createBackground, updateBackground, deleteBackground,
   getClips, createClip, updateClip, deleteClip,
@@ -193,6 +193,17 @@ export default function MentorForm() {
   }, [id, form, loadEducations, loadBackgrounds, loadClips, loadReviews]);
 
   useEffect(() => { loadMentor(); }, [loadMentor]);
+
+  // 头像"上传即入库"：上传成功后立即更新 DB，无需等表单保存，
+  // 后端会异步清理旧头像文件。新增模式下导师还没 ID，随表单一起保存。
+  const handleAvatarUploaded = useCallback(async (url: string) => {
+    if (!id) return;
+    try {
+      await updateMentorAvatar(Number(id), url);
+    } catch {
+      message.error('头像保存失败，请重新上传');
+    }
+  }, [id]);
 
   // 提交成功后，把筛选维度用到的新值写入标签表（延迟创建：
   // 表单没提交就不产生孤儿标签；创建失败不影响已保存的导师）。
@@ -528,7 +539,7 @@ export default function MentorForm() {
 
           {/* Avatar */}
           <Form.Item name="avatar" label="头像 (avatar)">
-            <ImageUploadField uploadDir="mentors" />
+            <ImageUploadField uploadDir="mentors" onUploaded={handleAvatarUploaded} />
           </Form.Item>
 
           {/* Bio */}

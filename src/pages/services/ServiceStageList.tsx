@@ -3,7 +3,7 @@ import { Table, Button, Modal, Form, Input, Space, message, Popconfirm, Typograp
 import type { TableColumnsType } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import {
-  getServiceStages, createServiceStage, updateServiceStage, deleteServiceStage,
+  getServiceStages, createServiceStage, updateServiceStage, updateServiceStageImage, deleteServiceStage,
   type ServiceStage,
 } from '../../api/services';
 import { useAuth } from '../../hooks/useAuth';
@@ -45,6 +45,13 @@ export default function ServiceStageList() {
     try { await deleteServiceStage(id); message.success('删除成功'); load(); }
     catch { message.error('删除失败'); }
   };
+
+  // 背景图上传即入库：上传成功后立即更新 DB，无需等保存（仅编辑模式；新增时随表单保存）
+  const handleImageUploaded = useCallback(async (url: string) => {
+    if (!editing) return;
+    try { await updateServiceStageImage(editing.id, url); }
+    catch { message.error('背景图保存失败，请重新上传'); }
+  }, [editing]);
 
   const columns: TableColumnsType<ServiceStage> = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
@@ -89,7 +96,7 @@ export default function ServiceStageList() {
           <Form.Item name="subtitle" label="副标题"><Input /></Form.Item>
           <Form.Item name="description" label="描述"><Input.TextArea rows={3} /></Form.Item>
           <Form.Item name="image" label="背景图（官网阶段卡片背景）">
-            <ImageUploadField uploadDir="services" previewWidth={160} previewHeight={90} objectFit="cover" />
+            <ImageUploadField uploadDir="services" onUploaded={handleImageUploaded} previewWidth={160} previewHeight={90} objectFit="cover" />
           </Form.Item>
           <Form.Item name="details" label="要点列表（官网详情区展示）">
             <StringListEditor />

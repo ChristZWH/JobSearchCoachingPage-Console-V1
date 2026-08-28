@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Form, Input, Select, Button, Card, Space, message, Typography, Spin } from 'antd';
 import { SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
-import { getCase, createCase, updateCase, getCases } from '../../api/cases';
+import { getCase, createCase, updateCase, updateCaseImage, getCases } from '../../api/cases';
 import { CASE_TAG_MAP } from '../../utils/caseTags';
 import ImageUploadField from '../../components/ImageUploadField';
 
@@ -45,6 +45,13 @@ export default function CaseForm() {
         .finally(() => setLoading(false));
     }
   }, [id, isEdit, form]);
+
+  // 图片上传即入库：上传成功后立即更新 DB，无需等保存（新增时随表单保存）
+  const handleImageUploaded = async (url: string) => {
+    if (!id) return;
+    try { await updateCaseImage(Number(id), url); }
+    catch { message.error('图片保存失败，请重新上传'); }
+  };
 
   const onFinish = async (values: Record<string, unknown>) => {
     // 清洗 tags：去除控制字符与首尾空白，防止粘贴带入制表符污染官网筛选
@@ -107,7 +114,7 @@ export default function CaseForm() {
             <Input style={{ width: 300 }} placeholder="e.g. 获得 Goldman Sachs Offer" />
           </Form.Item>
           <Form.Item name="image" label="展示图 (image)" extra="学员头像/案例展示图：上传保存到 /uploads/student-cases/">
-            <ImageUploadField uploadDir="student-cases" previewWidth={80} previewHeight={80} />
+            <ImageUploadField uploadDir="student-cases" onUploaded={handleImageUploaded} previewWidth={80} previewHeight={80} />
           </Form.Item>
         </Space>
         <Form.Item name="description" label="简介">

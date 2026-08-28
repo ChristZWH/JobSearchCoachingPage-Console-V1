@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Table, Button, Modal, Form, Input, Space, message, Popconfirm, Typography, Image, Tooltip } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { TableColumnsType } from 'antd';
-import { getCompanyLogos, createCompanyLogo, updateCompanyLogo, deleteCompanyLogo, type CompanyLogo } from '../../api/companies';
+import { getCompanyLogos, createCompanyLogo, updateCompanyLogo, updateCompanyLogoImage, deleteCompanyLogo, type CompanyLogo } from '../../api/companies';
 import { useAuth } from '../../hooks/useAuth';
 import ImageUploadField from '../../components/ImageUploadField';
 
@@ -62,6 +62,13 @@ export default function CompanyList() {
     } catch { message.error('删除失败'); }
   };
 
+  // Logo 上传即入库：上传成功后立即更新 DB，无需等保存（仅编辑模式；新增时随表单保存）
+  const handleLogoUploaded = useCallback(async (url: string) => {
+    if (!editing) return;
+    try { await updateCompanyLogoImage(editing.id, url); }
+    catch { message.error('Logo 保存失败，请重新上传'); }
+  }, [editing]);
+
   const columns: TableColumnsType<CompanyLogo> = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
     { title: '名称', dataIndex: 'name', key: 'name' },
@@ -108,7 +115,7 @@ export default function CompanyList() {
             <Input />
           </Form.Item>
           <Form.Item name="logo" label="Logo" rules={[{ required: true }]}>
-            <ImageUploadField uploadDir="logos" previewWidth={64} previewHeight={64} objectFit="contain" uploadText="上传" />
+            <ImageUploadField uploadDir="logos" onUploaded={handleLogoUploaded} previewWidth={64} previewHeight={64} objectFit="contain" uploadText="上传" />
           </Form.Item>
         </Form>
       </Modal>

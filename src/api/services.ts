@@ -34,6 +34,12 @@ export async function updateServiceCategory(id: string, data: Partial<ServiceCat
   return res.data;
 }
 
+// 背景图上传即入库：上传成功后立即调用，只更新 backgroundImage 一列（旧文件后端异步清理）
+export async function updateServiceCategoryBackgroundImage(id: string, image: string): Promise<ServiceCategory> {
+  const res = await client.put(`/admin/services/${id}/background-image`, { backgroundImage: image });
+  return res.data;
+}
+
 export async function deleteServiceCategory(id: string): Promise<void> {
   await client.delete(`/admin/services/${id}`);
 }
@@ -51,6 +57,12 @@ export async function createServiceStage(data: Partial<ServiceStage>): Promise<S
 
 export async function updateServiceStage(id: number, data: Partial<ServiceStage>): Promise<ServiceStage> {
   const res = await client.put(`/admin/service-stages/${id}`, data);
+  return res.data;
+}
+
+// 背景图上传即入库：上传成功后立即调用，只更新 image 一列（旧文件后端异步清理）
+export async function updateServiceStageImage(id: number, image: string): Promise<ServiceStage> {
+  const res = await client.put(`/admin/service-stages/${id}/image`, { image });
   return res.data;
 }
 
