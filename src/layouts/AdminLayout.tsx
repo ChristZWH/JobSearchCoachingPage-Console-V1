@@ -18,7 +18,6 @@ import {
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  RocketOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../hooks/useAuth';
 
@@ -123,8 +122,8 @@ export default function AdminLayout() {
           top: 0,
           bottom: 0,
           zIndex: 10,
-          background: '#0f2340',
-          borderRight: 'none',
+          background: 'linear-gradient(180deg, #e2ecf8 0%, #f0f5fb 100%)',
+          borderRight: '1px solid #d5e2f0',
         }}
       >
         {/* Logo area */}
@@ -134,32 +133,26 @@ export default function AdminLayout() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: collapsed ? 'center' : 'flex-start',
-            padding: collapsed ? 0 : '0 20px',
-            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            padding: collapsed ? 0 : '0 24px',
+            borderBottom: '1px solid #d5e2f0',
             marginBottom: 4,
           }}
         >
-          <div style={{
-            width: 36, height: 36, borderRadius: 10,
-            background: 'rgba(255,255,255,0.1)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
+          <span style={{
+            color: brandColor,
+            fontWeight: 700,
+            fontSize: 22,
+            whiteSpace: 'nowrap',
+            letterSpacing: -0.3,
           }}>
-            <RocketOutlined style={{ fontSize: 18, color: '#fff' }} />
-          </div>
-          {!collapsed && (
-            <span style={{
-              color: '#fff', fontWeight: 600, fontSize: 15,
-              marginLeft: 12, whiteSpace: 'nowrap',
-              letterSpacing: -0.3,
-            }}>
-              求职辅导
-            </span>
-          )}
+            {collapsed ? 'ZC' : (
+              <><span style={{ color: '#a07f33' }}>Z-Career</span> Console</>
+            )}
+          </span>
         </div>
 
         <Menu
-          theme="dark"
+          theme="light"
           mode="inline"
           selectedKeys={[selectedKey]}
           onClick={({ key }) => navigate(key)}
@@ -184,7 +177,7 @@ export default function AdminLayout() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottom: '1px solid #edf2f7',
+            borderBottom: '1px solid #d5e2f0',
             zIndex: 9,
             height: 64,
             flexShrink: 0,
@@ -213,8 +206,11 @@ export default function AdminLayout() {
           </Dropdown>
         </Header>
 
-        <Content style={{ margin: 20, padding: 24, background: '#fff', borderRadius: 10, minHeight: 280, overflowY: 'auto', flex: 1 }}>
-          <Outlet />
+        <Content style={{ margin: 20, padding: 20, background: '#e3eaf4', borderRadius: 12, minHeight: 280, overflowY: 'auto', flex: 1 }}>
+          {/* 白色内容卡：与蓝灰内容区、浅蓝侧栏形成三层视觉区分 */}
+          <div style={{ background: '#fff', borderRadius: 10, padding: 24, minHeight: '100%' }}>
+            <Outlet />
+          </div>
         </Content>
       </Layout>
     </Layout>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Form, Input, Button, Typography, message } from 'antd';
-import { UserOutlined, LockOutlined, RocketOutlined } from '@ant-design/icons';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useAuth } from '../hooks/useAuth';
 
 const { Title, Text } = Typography;
@@ -34,13 +34,13 @@ export default function Login() {
       <div
         style={{
           flex: '0 0 480px',
-          background: 'linear-gradient(160deg, #0f2340 0%, #1a365d 40%, #2a4a7f 100%)',
+          background: 'linear-gradient(160deg, #dce9f7 0%, #e6eef8 45%, #f4f8fc 100%)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
           padding: 64,
-          color: '#fff',
+          color: '#1a365d',
           position: 'relative',
           overflow: 'hidden',
         }}
@@ -49,26 +49,25 @@ export default function Login() {
         <div style={{
           position: 'absolute', top: -120, right: -120,
           width: 400, height: 400, borderRadius: '50%',
-          background: 'rgba(255,255,255,0.03)', pointerEvents: 'none',
+          background: 'rgba(26,54,93,0.04)', pointerEvents: 'none',
         }} />
         <div style={{
           position: 'absolute', bottom: -80, left: -60,
           width: 300, height: 300, borderRadius: '50%',
-          background: 'rgba(255,255,255,0.04)', pointerEvents: 'none',
+          background: 'rgba(26,54,93,0.05)', pointerEvents: 'none',
         }} />
 
         <div style={{ position: 'relative', textAlign: 'center' }}>
           <div style={{
-            width: 72, height: 72, borderRadius: 18, background: 'rgba(255,255,255,0.12)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 28px',
+            fontSize: 26, fontWeight: 700, letterSpacing: -0.5,
+            color: '#1a365d', marginBottom: 24,
           }}>
-            <RocketOutlined style={{ fontSize: 32, color: '#fff' }} />
+            Z-Career Console
           </div>
-          <Title level={2} style={{ color: '#fff', marginBottom: 12, fontWeight: 600, letterSpacing: -0.5 }}>
+          <Title level={2} style={{ color: '#1a365d', marginBottom: 12, fontWeight: 600, letterSpacing: -0.5 }}>
             求职辅导管理后台
           </Title>
-          <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15, lineHeight: 1.6 }}>
+          <Text style={{ color: '#5a6a85', fontSize: 15, lineHeight: 1.6 }}>
             求职辅导平台
             <br />
             管理控制台
@@ -77,7 +76,7 @@ export default function Login() {
 
         <div style={{
           position: 'absolute', bottom: 48, textAlign: 'center',
-          color: 'rgba(255,255,255,0.35)', fontSize: 12,
+          color: '#8a97ad', fontSize: 12,
         }}>
           &copy; {new Date().getFullYear()} 求职辅导 版权所有
         </div>

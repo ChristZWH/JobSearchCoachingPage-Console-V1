@@ -2,9 +2,12 @@ import { useEffect, useState, useCallback, cloneElement, type ReactElement } fro
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Form, Input, Button, Card, Space, message, Typography, Spin,
-  Table, Modal, Popconfirm, Divider, Select, InputNumber, Switch, Tooltip, Radio,
+  Table, Modal, Popconfirm, Divider, Select, InputNumber, Switch, Tooltip, Tag, Segmented,
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, ArrowLeftOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
+import {
+  PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, ArrowLeftOutlined,
+  ArrowUpOutlined, ArrowDownOutlined, FileTextOutlined, PictureOutlined,
+} from '@ant-design/icons';
 import type { TableColumnsType } from 'antd';
 import {
   getMentors, getMentor, createMentor, updateMentor, updateMentorAvatar,
@@ -535,10 +538,13 @@ export default function MentorForm() {
   const bioBlockColumns: TableColumnsType<MentorBioBlock> = [
     { title: '顺序', key: 'order', width: 56, render: (_: unknown, __: MentorBioBlock, index: number) => index + 1 },
     {
-      title: '类型', dataIndex: 'blockType', key: 'blockType', width: 70,
-      render: (t: MentorBioBlock['blockType']) => (
-        <span style={{ color: t === 'image' ? '#1677ff' : '#52c41a' }}>{t === 'image' ? '图片' : '文字'}</span>
-      ),
+      title: '类型', dataIndex: 'blockType', key: 'blockType', width: 90,
+      render: (t: MentorBioBlock['blockType']) =>
+        t === 'image' ? (
+          <Tag icon={<PictureOutlined />} color="purple" style={{ marginInlineEnd: 0 }}>图片</Tag>
+        ) : (
+          <Tag icon={<FileTextOutlined />} color="geekblue" style={{ marginInlineEnd: 0 }}>文字</Tag>
+        ),
     },
     {
       title: '内容', key: 'content',
@@ -546,7 +552,11 @@ export default function MentorForm() {
         record.blockType === 'image' ? (
           <Space size={8}>
             {record.imageUrl && (
-              <img src={record.imageUrl} alt="" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6 }} />
+              <img
+                src={record.imageUrl}
+                alt=""
+                style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6, border: '1px solid #f0f0f0' }}
+              />
             )}
             <Typography.Text type="secondary" ellipsis style={{ maxWidth: 400 }}>
               {record.caption || '(无图注)'}
@@ -833,14 +843,13 @@ export default function MentorForm() {
       >
         <Form form={bioBlockForm} layout="vertical">
           <Form.Item label="类型 (blockType)" required>
-            <Radio.Group
+            <Segmented
               value={bioBlockType}
-              onChange={(e) => setBioBlockType(e.target.value)}
+              onChange={(v) => setBioBlockType(v as 'text' | 'image')}
               options={[
-                { label: '文字', value: 'text' },
-                { label: '图片', value: 'image' },
+                { label: '文字', value: 'text', icon: <FileTextOutlined /> },
+                { label: '图片', value: 'image', icon: <PictureOutlined /> },
               ]}
-              optionType="button"
             />
           </Form.Item>
           <Form.Item
