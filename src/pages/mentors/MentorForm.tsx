@@ -2,17 +2,18 @@ import { useEffect, useState, useCallback, cloneElement, type ReactElement } fro
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Form, Input, Button, Card, Space, message, Typography, Spin,
-  Table, Modal, Popconfirm, Divider, Select, InputNumber, Switch, Tooltip,
+  Table, Modal, Popconfirm, Divider, Select, InputNumber, Switch, Tooltip, Radio,
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, ArrowLeftOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 import type { TableColumnsType } from 'antd';
 import {
   getMentors, getMentor, createMentor, updateMentor, updateMentorAvatar,
   getEducations, createEducation, updateEducation, deleteEducation,
   getBackgrounds, createBackground, updateBackground, deleteBackground,
+  getBioBlocks, createBioBlock, updateBioBlock, deleteBioBlock,
   getClips, createClip, updateClip, deleteClip,
   getReviews, createReview, updateReview, deleteReview,
-  type Mentor, type MentorEducation, type MentorBackground, type MentorClip, type MentorReview,
+  type Mentor, type MentorEducation, type MentorBackground, type MentorBioBlock, type MentorClip, type MentorReview,
 } from '../../api/mentors';
 import { getTags, createTag, type Tag as TagType } from '../../api/tags';
 import TagSelect from '../../components/TagSelect';
@@ -87,6 +88,17 @@ export default function MentorForm() {
   const [editingBg, setEditingBg] = useState<MentorBackground | null>(null);
   const [bgForm] = Form.useForm();
   const [bgLoading, setBgLoading] = useState(false);
+
+  // Bio block sub-table (详细介绍图文混排内容块)
+  const [bioBlocks, setBioBlocks] = useState<MentorBioBlock[]>([]);
+  const [bioBlockModalOpen, setBioBlockModalOpen] = useState(false);
+  const [editingBioBlock, setEditingBioBlock] = useState<MentorBioBlock | null>(null);
+  const [bioBlockForm] = Form.useForm();
+  const [bioBlockLoading, setBioBlockLoading] = useState(false);
+  // 弹窗内当前区块类型：Radio 用本地状态控制（不挂 Form.Item，避免
+  // useWatch 在 Modal destroyOnClose 下对未挂载表单报 warning），
+  // 保存时手动并入 payload。
+  const [bioBlockType, setBioBlockType] = useState<'text' | 'image'>('text');
 
   // Clip sub-table
   const [clips, setClips] = useState<MentorClip[]>([]);
@@ -164,6 +176,14 @@ export default function MentorForm() {
     finally { setBgLoading(false); }
   }, [id]);
 
+  const loadBioBlocks = useCallback(async () => {
+    if (!id) return;
+    setBioBlockLoading(true);
+    try { const list = await getBioBlocks(Number(id)); setBioBlocks(list); }
+    catch { message.error('加载详细介绍区块失败'); }
+    finally { setBioBlockLoading(false); }
+  }, [id]);
+
   const loadClips = useCallback(async () => {
     if (!id) return;
     setClipLoading(true);
@@ -193,11 +213,12 @@ export default function MentorForm() {
       });
       loadEducations();
       loadBackgrounds();
+      loadBioBlocks();
       loadClips();
       loadReviews();
     } catch { message.error('加载导师信息失败'); }
     finally { setLoading(false); }
-  }, [id, form, loadEducations, loadBackgrounds, loadClips, loadReviews]);
+  }, [id, form, loadEducations, loadBackgrounds, loadBioBlocks, loadClips, loadReviews]);
 
   useEffect(() => { loadMentor(); }, [loadMentor]);
 
@@ -338,6 +359,65 @@ export default function MentorForm() {
     } catch { message.error('删除职业背景失败'); }
   };
 
+  // Bio block CRUD handlers
+  const openAddBioBlock = () => {
+    setEditingBioBlock(null);
+    bioBlockForm.resetFields();
+    bioBlockForm.setFieldsValue({ blockType: 'text' });
+    setBioBlockType('text');
+    setBioBlockModalOpen(true);
+  };
+
+  const openEditBioBlock = (record: MentorBioBlock) => {
+    setEditingBioBlock(record);
+    bioBlockForm.setFieldsValue({
+      content: record.content,
+      imageUrl: record.imageUrl,
+      caption: record.caption,
+    });
+    setBioBlockType(record.blockType);
+    setBioBlockModalOpen(true);
+  };
+
+  const handleBioBlockOk = async () => {
+    const values = await bioBlockForm.validateFields();
+    try {
+      if (editingBioBlock) {
+        // 后端整块替换语义：回传完整区块（含 order），避免 partial 更新清不掉字段
+        await updateBioBlock(Number(id), editingBioBlock.id, {
+          ...editingBioBlock, ...values, blockType: bioBlockType,
+        });
+        message.success('区块更新成功');
+      } else {
+        await createBioBlock(Number(id), { ...values, blockType: bioBlockType, order: bioBlocks.length });
+        message.success('区块添加成功');
+      }
+      setBioBlockModalOpen(false);
+      loadBioBlocks();
+    } catch { message.error('保存区块失败'); }
+  };
+
+  const handleBioBlockDelete = async (blockId: number) => {
+    try {
+      await deleteBioBlock(Number(id), blockId);
+      message.success('区块删除成功');
+      loadBioBlocks();
+    } catch { message.error('删除区块失败'); }
+  };
+
+  // 上移/下移：与相邻区块交换 order（后端整块替换语义，回传完整区块）
+  const moveBioBlock = async (index: number, dir: -1 | 1) => {
+    const target = index + dir;
+    if (target < 0 || target >= bioBlocks.length) return;
+    const current = bioBlocks[index];
+    const neighbor = bioBlocks[target];
+    try {
+      await updateBioBlock(Number(id), current.id, { ...current, order: neighbor.order });
+      await updateBioBlock(Number(id), neighbor.id, { ...neighbor, order: current.order });
+      loadBioBlocks();
+    } catch { message.error('调整区块顺序失败'); }
+  };
+
   // Clip CRUD handlers
   const openAddClip = () => {
     setEditingClip(null);
@@ -443,6 +523,53 @@ export default function MentorForm() {
             <Button type="link" icon={<EditOutlined />} onClick={() => openEditBg(record)} />
           </Tooltip>
           <Popconfirm title="确认删除？" onConfirm={() => handleBgDelete(record.id)}>
+            <Tooltip title="删除">
+              <Button type="link" danger icon={<DeleteOutlined />} />
+            </Tooltip>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
+  const bioBlockColumns: TableColumnsType<MentorBioBlock> = [
+    { title: '顺序', key: 'order', width: 56, render: (_: unknown, __: MentorBioBlock, index: number) => index + 1 },
+    {
+      title: '类型', dataIndex: 'blockType', key: 'blockType', width: 70,
+      render: (t: MentorBioBlock['blockType']) => (
+        <span style={{ color: t === 'image' ? '#1677ff' : '#52c41a' }}>{t === 'image' ? '图片' : '文字'}</span>
+      ),
+    },
+    {
+      title: '内容', key: 'content',
+      render: (_: unknown, record: MentorBioBlock) =>
+        record.blockType === 'image' ? (
+          <Space size={8}>
+            {record.imageUrl && (
+              <img src={record.imageUrl} alt="" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6 }} />
+            )}
+            <Typography.Text type="secondary" ellipsis style={{ maxWidth: 400 }}>
+              {record.caption || '(无图注)'}
+            </Typography.Text>
+          </Space>
+        ) : (
+          <Typography.Text ellipsis style={{ maxWidth: 500, display: 'inline-block' }}>{record.content}</Typography.Text>
+        ),
+    },
+    {
+      title: '操作', key: 'actions', width: 160,
+      render: (_: unknown, record: MentorBioBlock, index: number) => (
+        <Space size={0}>
+          <Tooltip title="上移">
+            <Button type="link" icon={<ArrowUpOutlined />} disabled={index === 0} onClick={() => moveBioBlock(index, -1)} />
+          </Tooltip>
+          <Tooltip title="下移">
+            <Button type="link" icon={<ArrowDownOutlined />} disabled={index === bioBlocks.length - 1} onClick={() => moveBioBlock(index, 1)} />
+          </Tooltip>
+          <Tooltip title="编辑">
+            <Button type="link" icon={<EditOutlined />} onClick={() => openEditBioBlock(record)} />
+          </Tooltip>
+          <Popconfirm title="确认删除？" onConfirm={() => handleBioBlockDelete(record.id)}>
             <Tooltip title="删除">
               <Button type="link" danger icon={<DeleteOutlined />} />
             </Tooltip>
@@ -560,8 +687,26 @@ export default function MentorForm() {
           <Form.Item name="shortBio" label="简介 (shortBio)" rules={[{ max: 500 }]}>
             <TextArea rows={2} placeholder="一句话简介，用于卡片展示" />
           </Form.Item>
-          <Form.Item name="bio" label="详细介绍 (bio)">
-            <TextArea rows={4} placeholder="完整个人介绍" />
+          {/* 详细介绍图文区块：官网按顺序渲染 */}
+          <Form.Item
+            label="详细介绍区块 (bioBlocks)"
+            extra={isEdit
+              ? '图文混排内容块：每块为一段文字或一张图片（可带图注），官网按顺序渲染。'
+              : '新增导师请先保存，保存后可在此添加图文区块。'}
+          >
+            <Table
+              dataSource={bioBlocks}
+              columns={bioBlockColumns}
+              rowKey="id"
+              loading={bioBlockLoading}
+              pagination={false}
+              size="small"
+              style={{ maxWidth: 760 }}
+              locale={{ emptyText: '暂无区块' }}
+            />
+            <Button type="dashed" icon={<PlusOutlined />} onClick={openAddBioBlock} disabled={!isEdit} style={{ marginTop: 8 }}>
+              添加区块
+            </Button>
           </Form.Item>
 
           <Divider orientation="left">标签关联</Divider>
@@ -674,6 +819,53 @@ export default function MentorForm() {
         <Form form={bgForm} layout="vertical">
           <Form.Item name="content" label="内容 (content)" rules={[{ required: true }]}>
             <TextArea rows={2} placeholder="例如：10+ years in Investment Banking" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title={editingBioBlock ? '编辑区块' : '添加区块'}
+        open={bioBlockModalOpen}
+        onOk={handleBioBlockOk}
+        onCancel={() => setBioBlockModalOpen(false)}
+        destroyOnClose
+        width={720}
+      >
+        <Form form={bioBlockForm} layout="vertical">
+          <Form.Item label="类型 (blockType)" required>
+            <Radio.Group
+              value={bioBlockType}
+              onChange={(e) => setBioBlockType(e.target.value)}
+              options={[
+                { label: '文字', value: 'text' },
+                { label: '图片', value: 'image' },
+              ]}
+              optionType="button"
+            />
+          </Form.Item>
+          <Form.Item
+            name="content"
+            label="文字内容 (content)"
+            rules={bioBlockType === 'text' ? [{ required: true, message: '文字区块必须填写内容' }] : []}
+            style={{ display: bioBlockType === 'text' ? 'block' : 'none' }}
+          >
+            <TextArea rows={8} placeholder="段落文字，支持换行（官网保留换行）" />
+          </Form.Item>
+          <Form.Item
+            name="imageUrl"
+            label="图片 (imageUrl)"
+            extra="上传保存到 /uploads/mentors-bio/"
+            rules={bioBlockType === 'image' ? [{ required: true, message: '图片区块必须上传图片' }] : []}
+            style={{ display: bioBlockType === 'image' ? 'block' : 'none' }}
+          >
+            <ImageUploadField uploadDir="mentors-bio" previewWidth={160} previewHeight={160} />
+          </Form.Item>
+          <Form.Item
+            name="caption"
+            label="图注 (caption)"
+            style={{ display: bioBlockType === 'image' ? 'block' : 'none' }}
+          >
+            <Input placeholder="可选，图片下方说明文字" maxLength={200} />
           </Form.Item>
         </Form>
       </Modal>

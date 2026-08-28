@@ -35,7 +35,6 @@ export interface Mentor {
   keySkills: string[];
   professionalBackground: string[];
   industrySpecialization: string[];
-  bio: string;
   shortBio: string;
   teachingClips: TeachingClip[];
   reviews: Review[];
@@ -59,6 +58,16 @@ export interface MentorBackground {
   id: number;
   mentorId: number;
   content: string;
+}
+
+export interface MentorBioBlock {
+  id: number;
+  mentorId: number;
+  blockType: 'text' | 'image';
+  content: string;
+  imageUrl: string;
+  caption: string;
+  order: number;
 }
 
 export interface MentorClip {
@@ -161,6 +170,33 @@ export async function updateBackground(
 
 export async function deleteBackground(mentorId: number, bgId: number): Promise<void> {
   await client.delete(`/admin/mentors/${mentorId}/backgrounds/${bgId}`);
+}
+
+// Bio block CRUD (详细介绍图文混排内容块)
+export async function getBioBlocks(mentorId: number): Promise<MentorBioBlock[]> {
+  const res = await client.get(`/admin/mentors/${mentorId}/bio-blocks`);
+  return res.data;
+}
+
+export async function createBioBlock(
+  mentorId: number,
+  data: Partial<MentorBioBlock>,
+): Promise<MentorBioBlock> {
+  const res = await client.post(`/admin/mentors/${mentorId}/bio-blocks`, data);
+  return res.data;
+}
+
+export async function updateBioBlock(
+  mentorId: number,
+  blockId: number,
+  data: Partial<MentorBioBlock>,
+): Promise<MentorBioBlock> {
+  const res = await client.put(`/admin/mentors/${mentorId}/bio-blocks/${blockId}`, data);
+  return res.data;
+}
+
+export async function deleteBioBlock(mentorId: number, blockId: number): Promise<void> {
+  await client.delete(`/admin/mentors/${mentorId}/bio-blocks/${blockId}`);
 }
 
 // Clip CRUD (teaching clips)
