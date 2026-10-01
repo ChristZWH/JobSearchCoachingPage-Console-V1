@@ -25,10 +25,31 @@ function DimSelect({ options, value, onChange, placeholder, style }: {
     if (value) seen.add(value);
     return [...seen].filter((v) => v.trim() !== '').sort().map((v) => ({ label: v, value: v }));
   }, [options, value]);
+
+  // 失焦时归一化（与 TagSelect 同款防脏，官网下拉选项来自数据，任何变体都会变成重复选项）：
+  // 去首尾空白与制表符/换行；大小写不敏感命中已有选项时回填已有写法。
+  const canonicalize = (input: string): string => {
+    const stripped = input.replace(/[\t\n\r]/g, '');
+    const cleaned = stripped.trim();
+    if (!cleaned) return '';
+    const existing = mergedOptions.find((o) => o.value.toLowerCase() === cleaned.toLowerCase());
+    if (existing) {
+      if (existing.value !== cleaned) message.info(`已使用已有写法「${existing.value}」`);
+      return existing.value;
+    }
+    if (stripped !== input) message.warning('输入包含制表符/换行，已自动移除');
+    return cleaned;
+  };
+
   return (
     <AutoComplete
       value={value || undefined}
       onChange={(val) => onChange?.(val ?? '')}
+      onBlur={() => {
+        if (!value) return;
+        const canonical = canonicalize(value);
+        if (canonical !== value) onChange?.(canonical);
+      }}
       options={mergedOptions}
       filterOption={(input, option) =>
         (option?.label ?? '').toLowerCase().includes(input.toLowerCase())

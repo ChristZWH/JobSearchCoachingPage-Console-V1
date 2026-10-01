@@ -43,6 +43,15 @@ major          VARCHAR(100) DEFAULT '' COMMENT '学员专业名称'
 - 代码：三个仓库各自 revert 对应 PR 即可，互相独立
 - 数据库：`ALTER TABLE student_cases DROP COLUMN offer_position, DROP COLUMN school, DROP COLUMN major;`（上线初期三列为空值，无数据损失）
 
+## 补充决策（数据质量与防脏，2026-10-01 定稿）
+
+1. **筛选机制定稿**：与导师页逻辑一致——接口不加筛选参数，前端全量拉取后客户端过滤。字段"既筛选又展示"。
+2. **脏值风险结论**：加列本身不产生脏值；脏值来源是老数据 `industry`/`company` 的语义变化（目标→从业/入职）与写法变体（英文值、大小写、首尾空格）。筛选选项是数据实时提取的，"数据干净=下拉干净"，不存在不可逆脏数据。
+3. **新增 `scripts/audit-student-case-filters.sql`**（后端仓库）：五维度 distinct 值+行数的只读审计，上线加列后跑一遍看老值，补录/清洗后复查归零。
+4. **新增 `scripts/cleanup-student-case-filters.sql`**（后端仓库）：清洗 UPDATE 模板（全部默认注释，按审计结果启用；含备份与执行纪律说明）。
+5. **控制台防脏加固**：案例表单维度下拉补齐 TagSelect 同款归一化——失焦时去首尾空白/控制字符，大小写不敏感命中已有写法自动回填。
+6. **tags 旧标签：保留不清洗**。tags 已不参与筛选、仅卡片角标展示，老标签作为展示内容仍真实有效；不做破坏性清空。
+
 ## 本地联调环境备忘
 
 - 官网 `.env`：`USE_MOCK=false` + `GO_API_BASE_URL=http://localhost:8081`（连本地后端+本地 MySQL；切回 mock 改 `USE_MOCK=true`）
