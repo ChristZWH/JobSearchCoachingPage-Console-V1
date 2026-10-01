@@ -32,11 +32,18 @@ major          VARCHAR(100) DEFAULT '' COMMENT '学员专业名称'
 
 ## 部署 / 上线步骤
 
-1. 合并顺序：**后端 → 前端 / 控制台**（后端不上，前端读不到新字段）
-2. 服务器执行迁移：`mysql -u<user> -p maridiancareer < scripts/migrate_student_case_filters.sql`
-3. 部署后端二进制（现有 systemd 流程），前端、控制台随后部署
-4. 控制台给存量案例**补录五个维度的值**（此前为空，筛选下拉会缺项）
+> ⚠️ 顺序有讲究（Review #2 修正）：后端 Update 是全量覆盖契约（`Select("*").Save`），**旧版控制台先于新后端部署时，更新案例会把 offer_position/school/major 抹成空串**。而新版控制台打旧后端只会静默丢新字段编辑、不抹老数据——所以控制台必须先于后端上线。
+
+1. 合并：三个 PR 顺序随意；**部署顺序必须是：DB 加列 → 控制台 → 后端 → 官网前端**
+2. 服务器执行迁移：`mysql -u<user> -p maridiancareer < scripts/migrate_student_case_filters.sql`（幂等，重复执行自动跳过）
+3. 部署控制台，再部署后端二进制（现有 systemd 流程），最后官网前端
+4. 按 `audit-student-case-filters.sql` 审计脏值 → 控制台补录五个维度 + 整理 tags → `cleanup` 清洗 → 复审，**通过审计脚本头部的"干净验收门禁"才算完成**
 5. ⚠️ `scripts/seed-student-case-filters-test.sql`（8 条测试案例，TRUNCATE 覆盖式）**仅用于本地/测试库，勿在线上执行**
+
+## Review 修正（2026-10-01，同事 review PR #2）
+
+1. **迁移脚本幂等化**：原脚本"非幂等，报错即已迁移"，不符合仓库惯例（其余迁移脚本均幂等）。已用 `information_schema` + `PREPARE` 重写为幂等版，并在本地完整演练：未迁移表首跑加列 ✓ → 重跑三列全部 skip ✓ → 数据恢复无损 ✓。
+2. **Update 全量覆盖风险**：已在 `student_case_repo.go` 的 `Update()` 补契约注释（部署顺序约束），PR 描述、`scripts/README.md`、本文档三处同步写明"控制台先于后端"的部署顺序。未做 partial update（保持既有模式，review 认可最低要求是 PR 描述提醒）。
 
 ## 回滚方式
 
