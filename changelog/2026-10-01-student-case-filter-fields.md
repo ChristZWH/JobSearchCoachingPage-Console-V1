@@ -18,7 +18,7 @@
 
 ## 数据库变更
 
-`student_cases` 新增 3 列（纯 ADD COLUMN，MySQL 8 instant DDL，不锁表、不碰存量数据）：
+`student_cases` 新增 3 列（纯 ADD COLUMN，不碰存量数据。DDL 执行方式：MySQL 8.0.29+ 为 INSTANT；更早 8.0.x 带 AFTER 为 INPLACE——重建表但允许并发读写，本表量级小均无阻塞风险）：
 
 ```sql
 offer_position VARCHAR(200) DEFAULT '' COMMENT 'Offer岗位'
@@ -26,7 +26,7 @@ school         VARCHAR(100) DEFAULT '' COMMENT '毕业院校名称'
 major          VARCHAR(100) DEFAULT '' COMMENT '学员专业名称'
 ```
 
-- 迁移脚本：`JobSearchCoachingPage_BackenSide_v1/scripts/migrate_student_case_filters.sql`（一次性，重复执行报 Duplicate column 属预期）
+- 迁移脚本：`JobSearchCoachingPage_BackenSide_v1/scripts/migrate_student_case_filters.sql`（幂等：information_schema + PREPARE，重复执行自动跳过，兼容中途态）
 - `schema.sql` 已同步；本地两个库（maridiancareer / -test）已于 2026-10-01 执行
 - `industry` / `company` 复用现有列，列定义不变，语义在后台改为「从业行业方向 / 入职公司」
 
@@ -60,6 +60,11 @@ major          VARCHAR(100) DEFAULT '' COMMENT '学员专业名称'
 5. **控制台防脏加固**：案例表单维度下拉补齐 TagSelect 同款归一化——失焦时去首尾空白/控制字符，大小写不敏感命中已有写法自动回填。
 6. **tags 旧标签：不留旧值，补录时一并清理**（修订：原定"保留"，按"数据库不留脏值"要求升级）。tags 已不参与筛选、仅卡片角标展示；运营补录五个维度字段时把 tags 整理为纯展示标签（公司名/亮点词），清洗模板提供按值删除/清空两种 SQL（默认注释，先审计再启用）。
 7. **干净验收门禁（硬性）**：清洗脚本 ①（TRIM 去首尾空格）默认执行；审计脚本头部定义验收标准——五维度无同义变体、industry 全部落在官网分类、无空值、tags 无旧维度残留。**未达标不得关闭本次改造**。
+
+## 已知边界（2026-10-01，Review ⚠️2）
+
+- **案例列表"显式全量"约定**：官网固定传 `limit=1000`，后端案例端点上限同步放宽 100 → 1000（原先缺省只返回 20、上限 100，案例超量会**静默截断**且无任何报错）。案例超过 1000 条时再引入分页。
+- **导师页是同款"前端全量过滤"模式且未传 limit**（缺省 20、上限 100）——本 PR 范围外未动；导师量级逼近 20 时需照此同样处理。
 
 ## 本地联调环境备忘
 
