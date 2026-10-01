@@ -38,7 +38,8 @@ major          VARCHAR(100) DEFAULT '' COMMENT '学员专业名称'
 2. 服务器执行迁移：`mysql -u<user> -p maridiancareer < scripts/migrate_student_case_filters.sql`（幂等，重复执行自动跳过）
 3. 部署控制台，再部署后端二进制（现有 systemd 流程），最后官网前端
 4. 按 `audit-student-case-filters.sql` 审计脏值 → 控制台补录五个维度 + 整理 tags → `cleanup` 清洗 → 复审，**通过审计脚本头部的"干净验收门禁"才算完成**
-5. ⚠️ `scripts/seed-student-case-filters-test.sql`（8 条测试案例，TRUNCATE 覆盖式）**仅用于本地/测试库，勿在线上执行**
+
+> 本地联调种子（8 条测试案例）不随仓库分发：文件在仓库外（`JobSearchCoachingPage/seed-student-case-filters-test.sql`），仅用于本地库造数，服务器迁移用不到它。
 
 ## Review 修正（2026-10-01，同事 review PR #2）
 
@@ -63,5 +64,5 @@ major          VARCHAR(100) DEFAULT '' COMMENT '学员专业名称'
 ## 本地联调环境备忘
 
 - 官网 `.env`：`USE_MOCK=false` + `GO_API_BASE_URL=http://localhost:8081`（连本地后端+本地 MySQL；切回 mock 改 `USE_MOCK=true`）
-- 本地种子：`scripts/seed-student-case-filters-test.sql`（8 条案例）；`/tmp/seed-local-dev.sql`（6 导师+首页辅助表+9 洞察，未入库到 git，临时文件）
+- 本地种子：案例 `JobSearchCoachingPage/seed-student-case-filters-test.sql`（仓库外）；`/tmp/seed-local-dev.sql`（6 导师+首页辅助表+9 洞察，临时文件）
 - 已知边界：导师 tags/教育经历等子表无种子，导师详情页对应区块为空
