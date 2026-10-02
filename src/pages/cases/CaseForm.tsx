@@ -1,9 +1,10 @@
 import { cloneElement, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Form, Input, Select, AutoComplete, Button, Card, Space, message, Typography, Spin } from 'antd';
+import { Form, Input, Select, AutoComplete, Button, Card, Space, message, Typography, Spin, Alert } from 'antd';
 import { SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { getCase, createCase, updateCase, updateCaseImage, getCases, type StudentCase } from '../../api/cases';
 import { CASE_FILTER_DIMENSIONS, caseFilterFieldLabel, caseFilterControlBox } from '../../utils/filterDimension';
+import { noChineseRule } from '../../utils/validators';
 import ImageUploadField from '../../components/ImageUploadField';
 
 const { Title } = Typography;
@@ -168,6 +169,12 @@ export default function CaseForm() {
       title={<Title level={4}>{isEdit ? '编辑案例' : '新增案例'}</Title>}
       extra={<Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/cases')}>返回</Button>}
     >
+      <Alert
+        message="填写内容请使用英文输入 (English only)"
+        type="info"
+        showIcon
+        style={{ marginBottom: 24 }}
+      />
       <Form form={form} layout="vertical" onFinish={onFinish} style={{ maxWidth: 900 }}>
         <Space size="middle">
           <Form.Item name="title" label="标题" rules={[{ required: true }]}>
@@ -179,52 +186,53 @@ export default function CaseForm() {
               { label: '科技', value: 'tech' }, { label: '综合', value: 'general' },
             ]} />
           </Form.Item>
-          <Form.Item name="industry" label={caseFilterFieldLabel('industry', '从业行业方向 (industry)')} tooltip="官网筛选维度">
+          <Form.Item name="industry" label={caseFilterFieldLabel('industry', '从业行业方向 (industry)')} tooltip="官网筛选维度，仅英文" rules={[noChineseRule('从业行业方向')]}>
             <CaseFilterBox field="industry">
-              <DimSelect options={dimOptions['industry']} placeholder="如：金融 / 咨询 / 数据科技" style={{ width: 200 }} />
+              <DimSelect options={dimOptions['industry']} placeholder="e.g. Finance / Consulting / Tech" style={{ width: 200 }} />
             </CaseFilterBox>
           </Form.Item>
-          <Form.Item name="company" label={caseFilterFieldLabel('company', '入职公司 (company)')} tooltip="官网筛选维度">
+          <Form.Item name="company" label={caseFilterFieldLabel('company', '入职公司 (company)')} tooltip="官网筛选维度，仅英文" rules={[noChineseRule('入职公司')]}>
             <CaseFilterBox field="company">
-              <DimSelect options={dimOptions['company']} placeholder="如：Goldman Sachs" style={{ width: 200 }} />
+              <DimSelect options={dimOptions['company']} placeholder="e.g. Goldman Sachs" style={{ width: 200 }} />
             </CaseFilterBox>
           </Form.Item>
         </Space>
         <Space size="middle">
-          <Form.Item name="offerPosition" label={caseFilterFieldLabel('offerPosition', 'Offer岗位 (offerPosition)')} tooltip="官网筛选维度">
+          <Form.Item name="offerPosition" label={caseFilterFieldLabel('offerPosition', 'Offer岗位 (offerPosition)')} tooltip="官网筛选维度，仅英文" rules={[noChineseRule('Offer岗位')]}>
             <CaseFilterBox field="offerPosition">
-              <DimSelect options={dimOptions['offerPosition']} placeholder="如：Investment Banking Analyst" style={{ width: 240 }} />
+              <DimSelect options={dimOptions['offerPosition']} placeholder="e.g. Investment Banking Analyst" style={{ width: 240 }} />
             </CaseFilterBox>
           </Form.Item>
-          <Form.Item name="school" label={caseFilterFieldLabel('school', '毕业院校 (school)')} tooltip="官网筛选维度">
+          <Form.Item name="school" label={caseFilterFieldLabel('school', '毕业院校 (school)')} tooltip="官网筛选维度，仅英文" rules={[noChineseRule('毕业院校')]}>
             <CaseFilterBox field="school">
-              <DimSelect options={dimOptions['school']} placeholder="如：LSE / 清华大学" style={{ width: 200 }} />
+              <DimSelect options={dimOptions['school']} placeholder="e.g. LSE / Tsinghua University" style={{ width: 200 }} />
             </CaseFilterBox>
           </Form.Item>
-          <Form.Item name="major" label={caseFilterFieldLabel('major', '学员专业 (major)')} tooltip="官网筛选维度">
+          <Form.Item name="major" label={caseFilterFieldLabel('major', '学员专业 (major)')} tooltip="官网筛选维度，仅英文" rules={[noChineseRule('学员专业')]}>
             <CaseFilterBox field="major">
-              <DimSelect options={dimOptions['major']} placeholder="如：金融学 / Mathematics" style={{ width: 200 }} />
+              <DimSelect options={dimOptions['major']} placeholder="e.g. Finance / Mathematics" style={{ width: 200 }} />
             </CaseFilterBox>
           </Form.Item>
         </Space>
         <Space size="middle">
-          <Form.Item name="studentName" label="学员姓名">
-            <Input style={{ width: 160 }} />
+          <Form.Item name="studentName" label="学员姓名" rules={[noChineseRule('学员姓名')]}>
+            <Input style={{ width: 160 }} placeholder="e.g. Zhang Wei" />
           </Form.Item>
-          <Form.Item name="result" label="成果">
-            <Input style={{ width: 300 }} placeholder="e.g. 获得 Goldman Sachs Offer" />
+          <Form.Item name="result" label="成果" rules={[noChineseRule('成果')]}>
+            <Input style={{ width: 300 }} placeholder="e.g. Goldman Sachs Offer" />
           </Form.Item>
           <Form.Item name="image" label="展示图 (image)" extra="学员头像/案例展示图：上传保存到 /uploads/student-cases/">
             <ImageUploadField uploadDir="student-cases" onUploaded={handleImageUploaded} previewWidth={80} previewHeight={80} />
           </Form.Item>
         </Space>
-        <Form.Item name="description" label="简介">
-          <TextArea rows={2} placeholder="案例简要描述..." />
+        <Form.Item name="description" label="简介" rules={[noChineseRule('简介')]}>
+          <TextArea rows={2} placeholder="案例简要描述（英文）..." />
         </Form.Item>
         <Form.Item
           name="tags"
           label="标签 (tags)"
           extra="仅用于案例卡片展示，不参与官网筛选（筛选已改为从业行业/入职公司/Offer岗位/毕业院校/专业五个结构化字段）。可从已有标签选择，也可直接输入新标签后按 Enter 添加"
+          rules={[noChineseRule('标签')]}
         >
           <Select
             mode="tags"
@@ -238,17 +246,17 @@ export default function CaseForm() {
             style={{ maxWidth: 600 }}
           />
         </Form.Item>
-        <Form.Item name="content" label="内容" rules={[{ required: true }]}>
-          <TextArea rows={8} placeholder="案例主要内容..." />
+        <Form.Item name="content" label="内容" rules={[{ required: true }, noChineseRule('内容')]}>
+          <TextArea rows={8} placeholder="案例主要内容（英文）..." />
         </Form.Item>
-        <Form.Item name="challenge" label="挑战">
-          <TextArea rows={3} placeholder="学员面临的挑战是什么？" />
+        <Form.Item name="challenge" label="挑战" rules={[noChineseRule('挑战')]}>
+          <TextArea rows={3} placeholder="学员面临的挑战是什么？（英文）" />
         </Form.Item>
-        <Form.Item name="strategy" label="策略">
-          <TextArea rows={3} placeholder="采取了什么策略？" />
+        <Form.Item name="strategy" label="策略" rules={[noChineseRule('策略')]}>
+          <TextArea rows={3} placeholder="采取了什么策略？（英文）" />
         </Form.Item>
-        <Form.Item name="outcome" label="结果">
-          <TextArea rows={3} placeholder="结果如何？" />
+        <Form.Item name="outcome" label="结果" rules={[noChineseRule('结果')]}>
+          <TextArea rows={3} placeholder="结果如何？（英文）" />
         </Form.Item>
         <Form.Item>
           <Space>
