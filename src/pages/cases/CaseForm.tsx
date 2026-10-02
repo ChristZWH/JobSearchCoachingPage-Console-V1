@@ -1,13 +1,80 @@
-import { useEffect, useMemo, useState } from 'react';
+import { cloneElement, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Form, Input, Select, Button, Card, Space, message, Typography, Spin } from 'antd';
+import { Form, Input, Select, AutoComplete, Button, Card, Space, message, Typography, Spin } from 'antd';
 import { SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
-import { getCase, createCase, updateCase, updateCaseImage, getCases } from '../../api/cases';
-import { CASE_TAG_MAP } from '../../utils/caseTags';
+import { getCase, createCase, updateCase, updateCaseImage, getCases, type StudentCase } from '../../api/cases';
+import { CASE_FILTER_DIMENSIONS, caseFilterFieldLabel, caseFilterControlBox } from '../../utils/filterDimension';
 import ImageUploadField from '../../components/ImageUploadField';
 
 const { Title } = Typography;
 const { TextArea } = Input;
+
+/**
+ * 单值维度下拉：候选来自现有案例数据（与官网案例页筛选下拉同源），
+ * 支持直接输入新值（AutoComplete 原生自由输入）。
+ */
+function DimSelect({ options, value, onChange, placeholder, style }: {
+  options?: string[];
+  value?: string;
+  onChange?: (val: string) => void;
+  placeholder?: string;
+  style?: React.CSSProperties;
+}) {
+  const mergedOptions = useMemo(() => {
+    const seen = new Set<string>(options ?? []);
+    if (value) seen.add(value);
+    return [...seen].filter((v) => v.trim() !== '').sort().map((v) => ({ label: v, value: v }));
+  }, [options, value]);
+
+  // 失焦时归一化（与 TagSelect 同款防脏，官网下拉选项来自数据，任何变体都会变成重复选项）：
+  // 去首尾空白与制表符/换行；大小写不敏感命中已有选项时回填已有写法。
+  const canonicalize = (input: string): string => {
+    const stripped = input.replace(/[\t\n\r]/g, '');
+    const cleaned = stripped.trim();
+    if (!cleaned) return '';
+    const existing = mergedOptions.find((o) => o.value.toLowerCase() === cleaned.toLowerCase());
+    if (existing) {
+      if (existing.value !== cleaned) message.info(`已使用已有写法「${existing.value}」`);
+      return existing.value;
+    }
+    if (stripped !== input) message.warning('输入包含制表符/换行，已自动移除');
+    return cleaned;
+  };
+
+  return (
+    <AutoComplete
+      value={value || undefined}
+      onChange={(val) => onChange?.(val ?? '')}
+      onBlur={() => {
+        if (!value) return;
+        const canonical = canonicalize(value);
+        if (canonical !== value) onChange?.(canonical);
+      }}
+      options={mergedOptions}
+      filterOption={(input, option) =>
+        (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+      }
+      placeholder={placeholder}
+      allowClear
+      style={{ minWidth: 160, ...style }}
+    />
+  );
+}
+
+/** 官网筛选维度控件的高亮盒子（用法与 MentorForm 的 FilterBox 一致） */
+function CaseFilterBox({ field, value, onChange, children }: {
+  field: (typeof CASE_FILTER_DIMENSIONS)[number];
+  value?: string;
+  onChange?: (val: string) => void;
+  // Form.Item 只会把值注入直接子组件，children 需带 value/onChange 的元素类型才能转发
+  children: React.ReactElement<{ value?: string; onChange?: (val: string) => void }>;
+}) {
+  return (
+    <div style={caseFilterControlBox(field)}>
+      {cloneElement(children, { value, onChange })}
+    </div>
+  );
+}
 
 export default function CaseForm() {
   const { id } = useParams<{ id: string }>();
@@ -16,24 +83,37 @@ export default function CaseForm() {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  // 标签候选：现有案例已用过的标签（官网筛选数据源）+ 前端维度映射表中的固定值
+  // 标签候选：现有案例已用过的标签（仅卡片展示用，不参与官网筛选）
   const [existingTags, setExistingTags] = useState<string[]>([]);
+  // 官网筛选维度的数据驱动选项：从现有案例数据提取各维度去重值，
+  // 与官网案例页筛选下拉的数据源保持一致（参考 MentorForm.dimOptions）。
+  const [dimOptions, setDimOptions] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     getCases({ page_size: 500 })
       .then((res) => {
-        const seen = new Set<string>();
+        const tags = new Set<string>();
         for (const c of res.data ?? []) {
-          for (const t of c.tags ?? []) seen.add(t);
+          for (const t of c.tags ?? []) tags.add(t);
         }
-        setExistingTags([...seen].sort());
+        setExistingTags([...tags].sort());
+        const values: Record<string, string[]> = {};
+        for (const field of CASE_FILTER_DIMENSIONS) {
+          values[field] = [
+            ...new Set(
+              (res.data || [])
+                .map((c) => c[field as keyof StudentCase])
+                .filter((v): v is string => typeof v === 'string' && v.trim() !== ''),
+            ),
+          ].sort();
+        }
+        setDimOptions(values);
       })
       .catch(() => {});
   }, []);
 
   const tagOptions = useMemo(() => {
-    const seen = new Set<string>([...(Object.values(CASE_TAG_MAP).flat() as string[]), ...existingTags]);
-    return [...seen].sort().map((t) => ({ label: t, value: t }));
+    return [...existingTags].sort().map((t) => ({ label: t, value: t }));
   }, [existingTags]);
 
   useEffect(() => {
@@ -99,11 +179,32 @@ export default function CaseForm() {
               { label: '科技', value: 'tech' }, { label: '综合', value: 'general' },
             ]} />
           </Form.Item>
-          <Form.Item name="industry" label="行业">
-            <Input style={{ width: 200 }} />
+          <Form.Item name="industry" label={caseFilterFieldLabel('industry', '从业行业方向 (industry)')} tooltip="官网筛选维度">
+            <CaseFilterBox field="industry">
+              <DimSelect options={dimOptions['industry']} placeholder="如：金融 / 咨询 / 数据科技" style={{ width: 200 }} />
+            </CaseFilterBox>
           </Form.Item>
-          <Form.Item name="company" label="目标公司">
-            <Input style={{ width: 200 }} />
+          <Form.Item name="company" label={caseFilterFieldLabel('company', '入职公司 (company)')} tooltip="官网筛选维度">
+            <CaseFilterBox field="company">
+              <DimSelect options={dimOptions['company']} placeholder="如：Goldman Sachs" style={{ width: 200 }} />
+            </CaseFilterBox>
+          </Form.Item>
+        </Space>
+        <Space size="middle">
+          <Form.Item name="offerPosition" label={caseFilterFieldLabel('offerPosition', 'Offer岗位 (offerPosition)')} tooltip="官网筛选维度">
+            <CaseFilterBox field="offerPosition">
+              <DimSelect options={dimOptions['offerPosition']} placeholder="如：Investment Banking Analyst" style={{ width: 240 }} />
+            </CaseFilterBox>
+          </Form.Item>
+          <Form.Item name="school" label={caseFilterFieldLabel('school', '毕业院校 (school)')} tooltip="官网筛选维度">
+            <CaseFilterBox field="school">
+              <DimSelect options={dimOptions['school']} placeholder="如：LSE / 清华大学" style={{ width: 200 }} />
+            </CaseFilterBox>
+          </Form.Item>
+          <Form.Item name="major" label={caseFilterFieldLabel('major', '学员专业 (major)')} tooltip="官网筛选维度">
+            <CaseFilterBox field="major">
+              <DimSelect options={dimOptions['major']} placeholder="如：金融学 / Mathematics" style={{ width: 200 }} />
+            </CaseFilterBox>
           </Form.Item>
         </Space>
         <Space size="middle">
@@ -123,7 +224,7 @@ export default function CaseForm() {
         <Form.Item
           name="tags"
           label="标签 (tags)"
-          extra="官网案例页按 role / function / topic 三个维度筛选用；不在维度映射表内的新标签会归入 topic。可从已有标签选择，也可直接输入新标签后按 Enter 添加"
+          extra="仅用于案例卡片展示，不参与官网筛选（筛选已改为从业行业/入职公司/Offer岗位/毕业院校/专业五个结构化字段）。可从已有标签选择，也可直接输入新标签后按 Enter 添加"
         >
           <Select
             mode="tags"

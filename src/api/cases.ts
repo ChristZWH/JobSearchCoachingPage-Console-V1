@@ -8,6 +8,9 @@ export interface StudentCase {
   category: string;
   industry: string;
   company: string;
+  offerPosition: string;
+  school: string;
+  major: string;
   description: string;
   studentName: string;
   result: string;
